@@ -14,13 +14,14 @@
  *******************************************************************************/
 
 #include "camodocal/camera_models/PinholeCamera.h"
-#include "utility_tool/system_lib.h"
 #include "utility_tool/pcm_debug_helper.h"
 
 #include <vector>
 #include <algorithm>
 #include <string>
+
 #include <Eigen/Core>
+#include <yaml-cpp/yaml.h>
 
 namespace sensor_config {
 struct ImgImuConfig {

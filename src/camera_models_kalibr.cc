@@ -14,6 +14,8 @@
  *******************************************************************************/
 
 #include "sensor_config/camera_models_kalibr.h"
+#include <fstream>
+#include <yaml-cpp/yaml.h>
 
 namespace sensor_config {
 
