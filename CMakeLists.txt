@@ -33,7 +33,7 @@ catkin_package(
 )
 
 add_library(${PROJECT_NAME}
-    src/camera_models_kalibr.cc
+    src/modules/camera_models_kalibr.cc
 )
 target_link_libraries(${PROJECT_NAME}
     ${catkin_LIBRARIES}
