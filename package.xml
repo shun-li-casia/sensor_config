@@ -28,6 +28,7 @@
   <!-- <author email="jane.doe@example.com">Jane Doe</author> -->
 
     <depend>roscpp</depend>
+    <depend>cv_bridge</depend>
     <depend>utility_tool</depend>
     <depend>camera_models</depend>
 
