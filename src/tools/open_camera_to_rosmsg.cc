@@ -15,6 +15,8 @@
 
 #include "utility_tool/cmdline.h"
 #include "utility_tool/print_ctrl_macro.h"
+#include "utility_tool/pcm_debug_helper.h"
+#include "utility_tool/system_lib.h"
 
 #include <ros/ros.h>
 #include <cv_bridge/cv_bridge.h>
@@ -49,9 +51,16 @@ int main(int argc, char** argv) {
     PCM_PRINT_INFO("open the camera successfully!\n");
   }
 
+  utility_tool::Timer timer, total;
+  total.Start();
   while (ros::ok()) {
+    timer.Start();
     cv::Mat frame, rgb;
     cap >> frame;
+    if (frame.empty()) { 
+      PCM_PRINT_WARN("frame is empty!\n");
+      continue;
+    }
     cv::cvtColor(frame, rgb, cv::COLOR_YUV2GRAY_UYVY);
 
     // pub as ros msg
@@ -61,6 +70,8 @@ int main(int argc, char** argv) {
     sensor_msgs::ImagePtr msg =
         cv_bridge::CvImage(header, "mono8", rgb).toImageMsg();
     image_pub.publish(msg);
+    PCM_PRINT_INFO("loop cost: %lf ms, total cost: %lf s\n", timer.End(),
+                   total.End() / 1000);
   }
 
   cap.release();
