@@ -19,6 +19,8 @@
 #include "utility_tool/pcm_debug_helper.h"
 #include "utility_tool/system_lib.h"
 
+#include <ros/duration.h>
+#include <ros/duration.h>
 #include <ros/ros.h>
 #include <cv_bridge/cv_bridge.h>
 #include <sensor_msgs/Image.h>
@@ -38,18 +40,20 @@ int main(int argc, char** argv) {
       "image_raw_" + std::to_string(camera_id), 1);
 
   cv::VideoCapture cap;
-  cap.open(camera_id, cv::CAP_V4L2);
   cap.set(cv::CAP_PROP_CONVERT_RGB, 0);
 
   cap.set(cv::CAP_PROP_FRAME_WIDTH, 3840);
   cap.set(cv::CAP_PROP_FRAME_HEIGHT, 1080);
   cap.set(cv::CAP_PROP_FPS, 25);
 
-  if (!cap.isOpened()) {
-    PCM_PRINT_ERROR("can not open the camera!\n");
-    return -1;
-  } else {
-    PCM_PRINT_INFO("open the camera successfully!\n");
+  for (int i = 0; i < 10; ++i) {
+    cap.open(camera_id, cv::CAP_V4L2);
+    if (cap.isOpened()) {
+      PCM_PRINT_INFO("open the camera successfully!\n");
+      break;
+    }
+    PCM_PRINT_ERROR("try %d times, can not open the camera!\n", i);
+    ros::Duration(1).sleep();
   }
 
   utility_tool::Timer timer, total;
