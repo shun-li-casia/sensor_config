@@ -1,0 +1,52 @@
+/*******************************************************************************
+ *   Copyright (C) 2022 Concordia NAVlab. All rights reserved.
+ *
+ *   @Filename: save_rosimg_to_file.cc
+ *
+ *   @Author: ShunLi
+ *
+ *   @Email: 2015097272@qq.com
+ *
+ *   @Date: 26/04/2024
+ *
+ *   @Description:
+ *
+ *******************************************************************************/
+
+#include "opencv2/highgui.hpp"
+#include "opencv2/imgcodecs.hpp"
+#include "opencv2/opencv.hpp"
+#include "utility_tool/pcm_debug_helper.h"
+#include "utility_tool/cmdline.h"
+
+#include <ros/init.h>
+#include <ros/ros.h>
+#include <sensor_msgs/Image.h>
+#include <cv_bridge/cv_bridge.h>
+
+void img_callback(const sensor_msgs::Image::ConstPtr& img_msg) {
+  PCM_PRINT_INFO("image received!\n");
+  cv_bridge::CvImageConstPtr ptr = cv_bridge::toCvCopy(img_msg, "bgr8");
+  const cv::Mat& rgb = ptr->image;
+  cv::imshow("usb_cam_img", rgb);
+  cv::waitKey(1);
+
+  std::string cur_t = std::to_string(img_msg->header.stamp.toNSec());
+  cv::imwrite(cur_t+".png", rgb);
+}
+
+int main (int argc, char *argv[]) {
+
+  cmdline::parser par;
+
+  par.add<int>("camera_id", 'i', "camera id", false, 0);
+  par.parse_check(argc, argv);
+  int camera_id = par.get<int>("camera_id");
+
+  ros::init(argc, argv, "save_rosimg_to_file_node");
+      ros::NodeHandle nh;
+  ros::Subscriber img_sub = nh.subscribe("image_raw_"+std::to_string(camera_id), 100, img_callback);
+
+  ros::spin();
+  return 0;
+}
