@@ -13,6 +13,7 @@
  *
  *******************************************************************************/
 
+#include "opencv2/imgproc.hpp"
 #include "utility_tool/cmdline.h"
 #include "utility_tool/print_ctrl_macro.h"
 #include "utility_tool/pcm_debug_helper.h"
@@ -42,7 +43,7 @@ int main(int argc, char** argv) {
 
   cap.set(cv::CAP_PROP_FRAME_WIDTH, 3840);
   cap.set(cv::CAP_PROP_FRAME_HEIGHT, 1080);
-  cap.set(cv::CAP_PROP_FPS, 30);
+  cap.set(cv::CAP_PROP_FPS, 25);
 
   if (!cap.isOpened()) {
     PCM_PRINT_ERROR("can not open the camera!\n");
@@ -57,21 +58,21 @@ int main(int argc, char** argv) {
     timer.Start();
     cv::Mat frame, rgb;
     cap >> frame;
-    if (frame.empty()) { 
+    if (frame.empty()) {
       PCM_PRINT_WARN("frame is empty!\n");
       continue;
     }
-    cv::cvtColor(frame, rgb, cv::COLOR_YUV2GRAY_UYVY);
+    cv::cvtColor(frame, rgb, cv::COLOR_YUV2BGR_UYVY);
 
     // pub as ros msg
     std_msgs::Header header;
     header.frame_id = "camera_" + std::to_string(camera_id);
     header.stamp = ros::Time::now();
     sensor_msgs::ImagePtr msg =
-        cv_bridge::CvImage(header, "mono8", rgb).toImageMsg();
+        cv_bridge::CvImage(header, "bgr8", rgb).toImageMsg();
     image_pub.publish(msg);
-    PCM_PRINT_INFO("loop cost: %lf ms, total cost: %lf s\n", timer.End(),
-                   total.End() / 1000);
+    PCM_PRINT_INFO("loop cost: %.2f ms(%.2f Hz), total cost: %.2f s\n",
+                   timer.End(), 1000.0 / timer.End(), total.End() / 1000);
   }
 
   cap.release();

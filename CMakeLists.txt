@@ -37,3 +37,6 @@ target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${YAML_CPP_LIBRARIES}
 
 add_executable(open_camera_to_rosmsg src/tools/open_camera_to_rosmsg.cc)
 target_link_libraries(open_camera_to_rosmsg ${catkin_LIBRARIES} ${OpenCV_LIBS})
+
+add_executable(save_rosimg_to_file src/tools/save_rosimg_to_file.cc)
+target_link_libraries(save_rosimg_to_file ${catkin_LIBRARIES} ${OpenCV_LIBS})
