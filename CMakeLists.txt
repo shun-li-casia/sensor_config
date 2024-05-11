@@ -14,7 +14,7 @@ find_package(Eigen3)
 include_directories(${EIGEN3_INCLUDE_DIR})
 
 set(OpenCV_DIR /usr/local/opencv470)
-find_package(OpenCV 4.7 REQUIRED)
+find_package(OpenCV 4 REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 message(WARNING "OpenCV_VERSION: ${OpenCV_VERSION}")
 
