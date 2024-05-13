@@ -20,8 +20,7 @@
 namespace sensor_config {
 
 void ConfigManager::ReadKalibr(const std::string calibn_file,
-                               ImgImuConfig* conf,
-                               float resize_scale_factor) {
+                               ImgImuConfig* conf, float resize_scale_factor) {
   conf->rostopic_.resize(2);
   conf->cam_params_.resize(2);
   conf->cam_overlaps_.resize(2);
@@ -47,11 +46,11 @@ void ConfigManager::ReadKalibr(const std::string calibn_file,
     }
 
     // intrinsics
-    conf->cam_params_[i].cameraName() = cam;
-    conf->cam_params_[i].modelType() = camodocal::Camera::ModelType::PINHOLE;
+    conf->cam_params_[i].camera_name() = cam;
+    conf->cam_params_[i].model_type() = Camera::ModelType::PINHOLE;
     std::vector<int> resolution = n[cam]["resolution"].as<std::vector<int>>();
-    conf->cam_params_[i].imageWidth() = resolution[0] * resize_scale_factor;
-    conf->cam_params_[i].imageHeight() = resolution[1] * resize_scale_factor;
+    conf->cam_params_[i].img_w() = resolution[0] * resize_scale_factor;
+    conf->cam_params_[i].img_h() = resolution[1] * resize_scale_factor;
 
     std::vector<double> distortion_coeffs =
         n[cam]["distortion_coeffs"].as<std::vector<double>>();
@@ -109,7 +108,7 @@ void ConfigManager::WriteKalibr(const ImgImuConfig& conf,
     node[cam_names[i]]["camera_model"] = "pinhole";
 
     // distortion_coeffs
-    const camodocal::PinholeCamera::Parameters& p = conf.cam_params_[i];
+    const PinholeCamera::Parameters& p = conf.cam_params_[i];
     std::vector<double> dis = {p.k1(), p.k2(), p.p1(), p.p2()};
     node[cam_names[i]]["distortion_coeffs"] = dis;
     node[cam_names[i]]["distortion_coeffs"].SetStyle(YAML::EmitterStyle::Flow);
@@ -123,7 +122,7 @@ void ConfigManager::WriteKalibr(const ImgImuConfig& conf,
     node[cam_names[i]]["intrinsics"].SetStyle(YAML::EmitterStyle::Flow);
 
     // resolution
-    std::vector<int> resolution = {p.imageWidth(), p.imageHeight()};
+    std::vector<int> resolution = {p.img_w(), p.img_h()};
     node[cam_names[i]]["resolution"] = resolution;
     node[cam_names[i]]["resolution"].SetStyle(YAML::EmitterStyle::Flow);
 

@@ -13,7 +13,6 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 find_package(Eigen3)
 include_directories(${EIGEN3_INCLUDE_DIR})
 
-set(OpenCV_DIR /usr/local/opencv470)
 find_package(OpenCV 4 REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 message(WARNING "OpenCV_VERSION: ${OpenCV_VERSION}")
@@ -28,10 +27,12 @@ catkin_package(
   CATKIN_DEPENDS
   roscpp
   cv_bridge
-  utility_tool
-  camera_models)
+  utility_tool)
 
-add_library(${PROJECT_NAME} src/modules/camera_models_kalibr.cc)
+add_library(
+  ${PROJECT_NAME} src/camera_model/camera.cc src/camera_model/pinhole_camera.cc
+                  src/modules/camera_models_kalibr.cc)
+
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${YAML_CPP_LIBRARIES}
                       ${OpenCV_LIBS})
 

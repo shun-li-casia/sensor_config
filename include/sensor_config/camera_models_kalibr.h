@@ -13,7 +13,7 @@
  *
  *******************************************************************************/
 
-#include "camodocal/camera_models/PinholeCamera.h"
+#include "sensor_config/camera_model/pinhole_camera.h"
 #include "utility_tool/pcm_debug_helper.h"
 
 #include <vector>
@@ -28,7 +28,7 @@ struct ImgImuConfig {
   Eigen::Matrix3d r_rl_;
   Eigen::Vector3d t_rl_;
 
-  std::vector<camodocal::PinholeCamera::Parameters> cam_params_;
+  std::vector<PinholeCamera::Parameters> cam_params_;
 
   std::vector<std::vector<int>> cam_overlaps_;
   std::vector<std::string> rostopic_;
