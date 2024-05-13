@@ -45,8 +45,6 @@ class Camera {
     int img_w() const;
     int img_h() const;
 
-    virtual Parameters& operator=(const Parameters& other) = 0;
-
    protected:
     ModelType model_type_;
     std::string camera_name_;

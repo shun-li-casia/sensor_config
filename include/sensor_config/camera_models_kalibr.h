@@ -13,6 +13,9 @@
  *
  *******************************************************************************/
 
+#ifndef SENSOR_CONFIG_CAMERA_MODELS_KALIBR_H_
+#define SENSOR_CONFIG_CAMERA_MODELS_KALIBR_H_
+
 #include "sensor_config/camera_model/pinhole_camera.h"
 #include "utility_tool/pcm_debug_helper.h"
 
@@ -43,3 +46,4 @@ class ConfigManager {
                           const std::string file_name);
 };
 }  // namespace sensor_config
+#endif
