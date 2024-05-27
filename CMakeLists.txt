@@ -5,8 +5,7 @@ set(CMAKE_BUILD_TYPE "Release")
 set(CMAKE_CXX_FLAGS "-std=c++11")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -g -fPIC")
 
-find_package(catkin REQUIRED COMPONENTS roscpp cv_bridge utility_tool
-                                        camera_models)
+find_package(catkin REQUIRED COMPONENTS roscpp cv_bridge utility_tool)
 find_package(yaml-cpp REQUIRED)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
