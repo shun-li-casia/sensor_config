@@ -33,14 +33,15 @@ int main(int argc, char** argv) {
   par.parse_check(argc, argv);
   int camera_id = par.get<int>("camera_id");
 
-  ros::init(argc, argv, "open_camera_"+ std::to_string(camera_id)+"_to_rosmsg_node");
+  ros::init(argc, argv,
+            "open_camera_" + std::to_string(camera_id) + "_to_rosmsg_node");
   ros::NodeHandle nh;
 
   ros::Publisher image_pub = nh.advertise<sensor_msgs::Image>(
-      "image_raw_" + std::to_string(camera_id), 1);
+      "hconcate_image_cam_" + std::to_string(camera_id), 1);
 
   cv::VideoCapture cap;
-  for (int i = 0; i < 10; ++i) {
+  for (int i = 0; i < 10 && ros::ok(); ++i) {
     cap.open(camera_id, cv::CAP_V4L2);
     bool is_open = cap.isOpened();
     if (is_open) {
@@ -78,14 +79,14 @@ int main(int argc, char** argv) {
       PCM_PRINT_WARN("frame is empty!\n");
       continue;
     }
-    cv::cvtColor(frame, rgb, cv::COLOR_YUV2GRAY_UYVY);
+    cv::cvtColor(frame, rgb, cv::COLOR_YUV2BGR_UYVY);
 
     // pub as ros msg
     std_msgs::Header header;
     header.frame_id = "camera_" + std::to_string(camera_id);
     header.stamp = ros::Time::now();
     sensor_msgs::ImagePtr msg =
-        cv_bridge::CvImage(header, "mono8", rgb).toImageMsg();
+        cv_bridge::CvImage(header, "bgr8", rgb).toImageMsg();
     image_pub.publish(msg);
     PCM_PRINT_INFO("loop cost: %.2f ms(%.2f Hz), total cost: %.2f s\n",
                    timer.End(), 1000.0 / timer.End(), total.End() / 1000);

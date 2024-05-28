@@ -29,8 +29,8 @@
 
     <depend>roscpp</depend>
     <depend>cv_bridge</depend>
+    <depend>image_transport</depend>
     <depend>utility_tool</depend>
-    <depend>camera_models</depend>
 
   <!-- The *_depend tags are used to specify dependencies -->
   <!-- Dependencies can be catkin packages or system dependencies -->
