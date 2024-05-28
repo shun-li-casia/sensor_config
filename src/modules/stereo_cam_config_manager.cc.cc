@@ -1,7 +1,7 @@
 /*******************************************************************************
  *   Copyright (C) 2023 CASIA. All rights reserved.
  *
- *   @Filename: camera_models_kalibr.cc
+ *   @Filename: stereo_cam_config_manager.cc
  *
  *   @Author: shun li
  *
@@ -13,14 +13,15 @@
  *
  *******************************************************************************/
 
-#include "sensor_config/camera_models_kalibr.h"
+#include "sensor_config/modules/stereo_cam_config_manager.h"
 #include <fstream>
 #include <yaml-cpp/yaml.h>
 
 namespace sensor_config {
 
-void ConfigManager::ReadKalibr(const std::string calibn_file,
-                               ImgImuConfig* conf, float resize_scale_factor) {
+void StereoCamConfigManager::ReadKalibr(const std::string calibn_file,
+                                        StereoCamConfig* conf,
+                                        float resize_scale_factor) {
   conf->rostopic_.resize(2);
   conf->cam_params_.resize(2);
   conf->cam_overlaps_.resize(2);
@@ -74,9 +75,8 @@ void ConfigManager::ReadKalibr(const std::string calibn_file,
   }
 }
 
-void ConfigManager::WriteKalibr(const ImgImuConfig& conf,
-
-                                const std::string file_name) {
+void StereoCamConfigManager::WriteKalibr(const StereoCamConfig& conf,
+                                         const std::string file_name) {
   YAML::Node node;
   assert(node.IsNull());
   std::vector<std::string> cam_names{"cam0", "cam1"};

@@ -1,7 +1,7 @@
 /*******************************************************************************
  *   Copyright (C) 2023 CASIA. All rights reserved.
  *
- *   @Filename: camera_models_kalibr.h
+ *   @Filename: stereo_cam_config_manager.h
  *
  *   @Author: shun li
  *
@@ -13,8 +13,8 @@
  *
  *******************************************************************************/
 
-#ifndef SENSOR_CONFIG_CAMERA_MODELS_KALIBR_H_
-#define SENSOR_CONFIG_CAMERA_MODELS_KALIBR_H_
+#ifndef SENSOR_CONFIG_MODULES_STEREO_CAM_CONFIG_MANAGER_H_
+#define SENSOR_CONFIG_MODULES_STEREO_CAM_CONFIG_MANAGER_H_
 
 #include "sensor_config/camera_model/pinhole_camera.h"
 #include "utility_tool/pcm_debug_helper.h"
@@ -27,7 +27,7 @@
 #include <yaml-cpp/yaml.h>
 
 namespace sensor_config {
-struct ImgImuConfig {
+struct StereoCamConfig {
   Eigen::Matrix3d r_rl_;
   Eigen::Vector3d t_rl_;
 
@@ -37,12 +37,12 @@ struct ImgImuConfig {
   std::vector<std::string> rostopic_;
 };
 
-class ConfigManager {
+class StereoCamConfigManager {
  public:
-  static void ReadKalibr(const std::string calibn_file, ImgImuConfig* conf,
+  static void ReadKalibr(const std::string calibn_file, StereoCamConfig* conf,
                          float resize_scale_factor = 1);
 
-  static void WriteKalibr(const ImgImuConfig& conf,
+  static void WriteKalibr(const StereoCamConfig& conf,
                           const std::string file_name);
 };
 }  // namespace sensor_config
