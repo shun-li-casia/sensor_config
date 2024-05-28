@@ -31,8 +31,9 @@ catkin_package(
   image_transport)
 
 add_library(
-  ${PROJECT_NAME} src/camera_model/camera.cc src/camera_model/pinhole_camera.cc
-                  src/modules/camera_models_kalibr.cc)
+  ${PROJECT_NAME}
+  src/camera_model/camera.cc src/camera_model/pinhole_camera.cc
+  ./src/modules/stereo_rectifier.cc ./src/modules/stereo_cam_config_manager.cc)
 
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${YAML_CPP_LIBRARIES}
                       ${OpenCV_LIBS})
