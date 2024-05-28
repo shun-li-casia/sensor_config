@@ -29,9 +29,25 @@
 int main(int argc, char** argv) {
   cmdline::parser par;
 
-  par.add<int>("camera_id", 'i', "camera id", false, 0);
+  par.add<int>("camera_id", 'i', "camera id", true);
+  par.add<int>("pub_downsample_rate", 'd', "publish frequency downsample rate",
+               true, 1);
   par.parse_check(argc, argv);
   int camera_id = par.get<int>("camera_id");
+  int pub_downsample_rate = par.get<int>("pub_downsample_rate");
+
+  if (pub_downsample_rate < 1) {
+    PCM_PRINT_WARN("pub_downsample_rate should be greater or equal than 1! \n");
+    pub_downsample_rate = 1;
+  }
+
+  if (25 % pub_downsample_rate != 0) {
+    PCM_PRINT_WARN("pub_downsample_rate should be a divisor of 25! \n");
+    pub_downsample_rate = 1;
+  }
+
+  PCM_PRINT_INFO("camera_id: %d, pub_downsample_rate: %d \n", camera_id,
+                 pub_downsample_rate);
 
   ros::init(argc, argv,
             "open_camera_" + std::to_string(camera_id) + "_to_rosmsg_node");
@@ -76,6 +92,9 @@ int main(int argc, char** argv) {
 
   utility_tool::Timer timer, total;
   total.Start();
+
+  const int round = 25 / pub_downsample_rate;
+  int count = 0;
   while (ros::ok()) {
     timer.Start();
     cv::Mat frame, rgb;
@@ -117,9 +136,12 @@ int main(int argc, char** argv) {
     sensor_msgs::ImagePtr right_msg =
         cv_bridge::CvImage(r_header, "bgr8", rightImage).toImageMsg();
 
-    image_pub.publish(msg);
-    pub_left.publish(left_msg);
-    pub_right.publish(right_msg);
+    if (++count == round) {
+      count = 0;
+      image_pub.publish(msg);
+      pub_left.publish(left_msg);
+      pub_right.publish(right_msg);
+    }
 
     PCM_PRINT_INFO("loop cost: %.2f ms(%.2f Hz), total cost: %.2f s\n",
                    timer.End(), 1000.0 / timer.End(), total.End() / 1000);
