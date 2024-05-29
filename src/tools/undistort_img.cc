@@ -119,5 +119,10 @@ int main(int argc, char** argv) {
     sensor_msgs::ImagePtr undistorted_msg =
         cv_bridge::CvImage(header, "bgr8", undistorted_img).toImageMsg();
     pub.publish(undistorted_msg);
+
+    ros::Rate rate(10);
+    rate.sleep();
   }
+
+  return 0;
 }
