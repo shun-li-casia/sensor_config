@@ -14,6 +14,8 @@
  *******************************************************************************/
 
 #include "sensor_config/camera_model/pinhole_camera.h"
+#include <yaml-cpp/yaml.h>
+#include <fstream>
 #include <iostream>
 
 namespace sensor_config {
@@ -52,6 +54,82 @@ double PinholeCamera::Parameters::k1() const { return k1_; }
 double PinholeCamera::Parameters::k2() const { return k2_; }
 double PinholeCamera::Parameters::p1() const { return p1_; }
 double PinholeCamera::Parameters::p2() const { return p2_; }
+
+bool PinholeCamera::Parameters::readKalibrSingleCam(const std::string& path) {
+  auto n = YAML::LoadFile(path);
+  if (n.IsNull()) {
+    return false;
+  }
+
+  std::string cam = "cam0";
+  // intrinsics
+  camera_name_ = cam;
+  model_type_ = Camera::ModelType::PINHOLE;
+  std::vector<int> resolution = n[cam]["resolution"].as<std::vector<int>>();
+  img_w_ = resolution[0];
+  img_h_ = resolution[1];
+
+  std::vector<double> distortion_coeffs =
+      n[cam]["distortion_coeffs"].as<std::vector<double>>();
+  k1_ = distortion_coeffs[0];
+  k2_ = distortion_coeffs[1];
+  p1_ = distortion_coeffs[2];
+  p2_ = distortion_coeffs[3];
+
+  std::vector<double> intrinsics =
+      n[cam]["intrinsics"].as<std::vector<double>>();
+  fx_ = intrinsics[0];
+  fy_ = intrinsics[1];
+  cx_ = intrinsics[2];
+  cy_ = intrinsics[3];
+
+  std::vector<int> overlap = n[cam]["cam_overlaps"].as<std::vector<int>>();
+  cam_overlaps_ = overlap;
+
+  std::string ros_topic = n[cam]["rostopic"].as<std::string>();
+  rostopic_ = ros_topic;
+  return true;
+}
+
+void PinholeCamera::Parameters::writeKalibrSingleCam(
+    const std::string& path) const {
+  YAML::Node node;
+  assert(node.IsNull());
+  std::string cam_names{"cam1"};
+
+  // overlap
+  node[cam_names]["cam_overlaps"] = cam_overlaps_;
+  node[cam_names]["cam_overlaps"].SetStyle(YAML::EmitterStyle::Flow);
+
+  // camera model
+  node[cam_names]["camera_model"] = "pinhole";
+
+  // distortion_coeffs
+  std::vector<double> dis = {k1_, k2_, p1_, p2_};
+  node[cam_names]["distortion_coeffs"] = dis;
+  node[cam_names]["distortion_coeffs"].SetStyle(YAML::EmitterStyle::Flow);
+
+  // distortion_model
+  node[cam_names]["distortion_model"] = "radtan";
+
+  // intrinsics
+  std::vector<double> in = {fx_, fy_, cx_, cy_};
+  node[cam_names]["intrinsics"] = in;
+  node[cam_names]["intrinsics"].SetStyle(YAML::EmitterStyle::Flow);
+
+  // resolution
+  std::vector<int> resolution = {img_w_, img_h_};
+  node[cam_names]["resolution"] = resolution;
+  node[cam_names]["resolution"].SetStyle(YAML::EmitterStyle::Flow);
+
+  // rostopic
+  node[cam_names]["rostopic"] = rostopic_;
+
+  std::ofstream file(path);
+  file.clear();
+  file << node;
+  file.close();
+}
 
 PinholeCamera::Parameters& PinholeCamera::Parameters::operator=(
     const PinholeCamera::Parameters& other) {
@@ -99,5 +177,40 @@ std::ostream& operator<<(std::ostream& out,
       << "            cy " << params.cy_ << std::endl;
 
   return out;
+}
+
+PinholeCamera::PinholeCamera(const std::string& cameraName, int imageWidth,
+                             int imageHeight, double fx, double fy, double cx,
+                             double cy, double k1, double k2, double p1,
+                             double p2)
+    : params_(cameraName, imageWidth, imageHeight, fx, fy, cx, cy, k1, k2, p1,
+              p2) {}
+
+PinholeCamera::PinholeCamera(const PinholeCamera::Parameters& params)
+    : params_(params) {}
+
+void PinholeCamera::RectSignalCamParam(
+    sensor_config::PinholeCamera::Parameters* undis_params,
+    std::pair<cv::Mat, cv::Mat>* maps) {
+  cv::Mat cameraMatrix = (cv::Mat_<double>(3, 3) << params_.fx(), 0,
+                          params_.cx(), 0, params_.fy(), params_.cy(), 0, 0, 1);
+  cv::Mat distCoeffs = (cv::Mat_<double>(4, 1) << params_.k1(), params_.k2(),
+                        params_.p1(), params_.p2());
+
+  cv::initUndistortRectifyMap(cameraMatrix, distCoeffs, cv::Mat(), cameraMatrix,
+                              cv::Size(params_.img_w(), params_.img_h()),
+                              CV_32FC1, maps->first, maps->second);
+
+  undis_params->camera_name() = params_.camera_name() + "_undistorted";
+  undis_params->img_w() = params_.img_w();
+  undis_params->img_h() = params_.img_h();
+  undis_params->fx() = cameraMatrix.at<double>(0, 0);
+  undis_params->fy() = cameraMatrix.at<double>(1, 1);
+  undis_params->cx() = cameraMatrix.at<double>(0, 2);
+  undis_params->cy() = cameraMatrix.at<double>(1, 2);
+  undis_params->k1() = 0;
+  undis_params->k2() = 0;
+  undis_params->p1() = 0;
+  undis_params->p2() = 0;
 }
 }  // namespace sensor_config

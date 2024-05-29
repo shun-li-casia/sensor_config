@@ -18,6 +18,7 @@
 
 #include <string>
 #include <memory>
+#include <opencv2/opencv.hpp>
 
 namespace sensor_config {
 class Camera {
@@ -45,10 +46,17 @@ class Camera {
     int img_w() const;
     int img_h() const;
 
+    virtual bool readKalibrSingleCam(const std::string& path) = 0;
+    virtual void writeKalibrSingleCam(const std::string& path) const = 0;
+
    protected:
     ModelType model_type_;
     std::string camera_name_;
     int img_w_{0}, img_h_{0};
+
+    // for kalibr
+    std::vector<int> cam_overlaps_;
+    std::string rostopic_;
   };
 };
 }  // namespace sensor_config
