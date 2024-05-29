@@ -201,7 +201,7 @@ void PinholeCamera::RectSignalCamParam(
                               cv::Size(params_.img_w(), params_.img_h()),
                               CV_32FC1, maps->first, maps->second);
 
-  undis_params->camera_name() = params_.camera_name() + "_undistorted";
+  undis_params->camera_name() = params_.camera_name() + "_rect";
   undis_params->img_w() = params_.img_w();
   undis_params->img_h() = params_.img_h();
   undis_params->fx() = cameraMatrix.at<double>(0, 0);
@@ -212,5 +212,8 @@ void PinholeCamera::RectSignalCamParam(
   undis_params->k2() = 0;
   undis_params->p1() = 0;
   undis_params->p2() = 0;
+
+  undis_params->rostopic() = params_.rostopic() + "_rect";
+  undis_params->cam_overlaps() = params_.cam_overlaps();
 }
 }  // namespace sensor_config

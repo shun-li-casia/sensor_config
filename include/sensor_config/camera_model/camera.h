@@ -38,13 +38,17 @@ class Camera {
 
     ModelType& model_type();
     std::string& camera_name();
+    std::string& rostopic();
     int& img_w();
     int& img_h();
+    std::vector<int>& cam_overlaps();
 
     ModelType modelType() const;
     const std::string& camera_name() const;
+    const std::string& rostopic() const;
     int img_w() const;
     int img_h() const;
+    std::vector<int> cam_overlaps() const;
 
     virtual bool readKalibrSingleCam(const std::string& path) = 0;
     virtual void writeKalibrSingleCam(const std::string& path) const = 0;

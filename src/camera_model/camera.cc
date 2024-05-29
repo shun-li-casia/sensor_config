@@ -30,9 +30,13 @@ Camera::ModelType& Camera::Parameters::model_type() { return model_type_; }
 
 std::string& Camera::Parameters::camera_name() { return camera_name_; }
 
+std::string& Camera::Parameters::rostopic() { return rostopic_; }
+
 int& Camera::Parameters::img_w() { return img_w_; }
 
 int& Camera::Parameters::img_h() { return img_h_; }
+
+std::vector<int>& Camera::Parameters::cam_overlaps() { return cam_overlaps_; }
 
 Camera::ModelType Camera::Parameters::modelType() const { return model_type_; }
 
@@ -40,7 +44,14 @@ const std::string& Camera::Parameters::camera_name() const {
   return camera_name_;
 }
 
+const std::string& Camera::Parameters::rostopic() const { return rostopic_; }
+
 int Camera::Parameters::img_w() const { return img_w_; }
 
 int Camera::Parameters::img_h() const { return img_h_; }
+
+std::vector<int> Camera::Parameters::cam_overlaps() const {
+  return cam_overlaps_;
+}
+
 }  // namespace sensor_config
