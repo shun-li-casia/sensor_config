@@ -31,9 +31,12 @@ catkin_package(
   image_transport)
 
 add_library(
-  ${PROJECT_NAME}
-  src/camera_model/camera.cc src/camera_model/pinhole_camera.cc
-  ./src/modules/stereo_rectifier.cc ./src/modules/stereo_cam_config_manager.cc)
+    ${PROJECT_NAME}
+    src/camera_model/camera.cc src/camera_model/pinhole_camera.cc
+    ./src/modules/stereo_rectifier.cc ./src/modules/stereo_cam_config_manager.cc
+    src/modules/imu_driver/imu_protocol.c
+    src/modules/imu_driver/serial_device.c
+    src/modules/imu_driver/serial_protocol.c)
 
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${YAML_CPP_LIBRARIES}
                       ${OpenCV_LIBS})
@@ -50,3 +53,5 @@ target_link_libraries(save_rosimg_to_file ${catkin_LIBRARIES} ${OpenCV_LIBS})
 add_executable(undistort_img src/tools/undistort_img.cc)
 target_link_libraries(undistort_img ${PROJECT_NAME})
 
+add_executable(open_camera_imu_to_rosmsg src/tools/open_camera_imu_to_rosmsg.cc)
+target_link_libraries(open_camera_imu_to_rosmsg ${PROJECT_NAME})
