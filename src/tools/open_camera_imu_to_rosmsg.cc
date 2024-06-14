@@ -103,7 +103,7 @@ void ImuCallback(unsigned char* data_block, int data_block_len) {
     imu_msg.linear_acceleration.z = sum_data.acc_z_ / average_cnt;
 
     g_imu_pub.publish(imu_msg);
-    printf("%u,%zu\n", data.tp_, offset.toNSec() / 1000);
+    // printf("%u,%zu\n", data.tp_, offset.toNSec() / 1000);
 
     // reset the data
     average_cnt = 0;
@@ -222,7 +222,7 @@ int main(int argc, char* argv[]) {
       g_imu_t_mutex.lock();
       if (g_imu_is_ready) {
         ros::Duration diff = g_imu_time - header.stamp;
-        std::cout << "diff is" << diff << std::endl;
+        std::cout << "diff is " << diff << std::endl;
       }
       g_imu_t_mutex.unlock();
     }
