@@ -33,30 +33,30 @@
 #include <sensor_msgs/Imu.h>
 #include <opencv2/opencv.hpp>
 
+struct imu_data {
+  uint16_t stamp_{0u};
+  uint32_t tp_{0u};
+  uint32_t frame_id_{0u};
+  float gyr_x_{0.0f};
+  float gyr_y_{0.0f};
+  float gyr_z_{0.0f};
+  float acc_x_{0.0f};
+  float acc_y_{0.0f};
+  float acc_z_{0.0f};
+  float temp_{0.0f};
+};
+
 static bool g_imu_is_ready = false;
 static uint32_t g_imu_cnt = 0;
 static unsigned int uart_baudrate = 1500000;
 
 ros::Publisher g_imu_pub;
 ros::Time g_time_start;
-double g_diff_s = 0.0f;
 
-uint32_t g_last_tp_ = UINT32_MAX, g_last_stamp_ = UINT32_MAX;
-
-uint32_t AbsMin(uint32_t x, uint32_t y) { return (x > y) ? (x - y) : (y - x); }
-
-struct imu_data {
-  uint16_t stamp_;
-  uint32_t tp_;
-  uint32_t frame_id_;
-  float gyr_x_;
-  float gyr_y_;
-  float gyr_z_;
-  float acc_x_;
-  float acc_y_;
-  float acc_z_;
-  float temp_;
-};
+uint32_t g_last_tp_ = UINT32_MAX;
+imu_data sum_data;
+uint32_t average_cnt = 0;
+bool is_first_frame = true;
 
 void ImuCallback(unsigned char* data_block, int data_block_len) {
   if (!g_imu_is_ready) {
@@ -80,39 +80,43 @@ void ImuCallback(unsigned char* data_block, int data_block_len) {
   data.frame_id_ = (uint32_t)(data_block[20] | (data_block[21] << 8) |
                               (data_block[22] << 16) | (data_block[23] << 24));
 
-  sensor_msgs::Imu imu_msg;
-  imu_msg.header.frame_id = "body";
 
-  if (data.tp_ == g_last_tp_) {
-    if (data.stamp_ >= g_last_stamp_) {
-      g_diff_s +=
-          static_cast<double>(data.stamp_ - g_last_stamp_) * 49.02f * 1e-6f;
-    } else {
-      g_diff_s +=
-          static_cast<double>(AbsMin(811, g_last_stamp_) + data.stamp_) *
-          49.02f * 1e-6f;
-    }
-  } else {
-    g_diff_s = 0.0f;
+  if (is_first_frame) {
+    g_last_tp_ = data.tp_;
+    is_first_frame = false;
   }
+
+  if (data.tp_ != g_last_tp_) {
+    // ready to pub
+    sensor_msgs::Imu imu_msg;
+    imu_msg.header.frame_id = "body";
+    ros::Duration offset(static_cast<double>(g_last_tp_) * 1e-3f);
+    imu_msg.header.stamp = g_time_start + offset;
+
+    imu_msg.angular_velocity.x = sum_data.gyr_x_ / average_cnt;
+    imu_msg.angular_velocity.y = sum_data.gyr_y_ / average_cnt;
+    imu_msg.angular_velocity.z = sum_data.gyr_z_ / average_cnt;
+    imu_msg.linear_acceleration.x = sum_data.acc_x_ / average_cnt;
+    imu_msg.linear_acceleration.y = sum_data.acc_y_ / average_cnt;
+    imu_msg.linear_acceleration.z = sum_data.acc_z_ / average_cnt;
+
+    g_imu_pub.publish(imu_msg);
+    printf("%u,%zu\n", data.tp_, offset.toNSec() / 1000);
+
+    // reset the data
+    average_cnt = 0;
+    sum_data = imu_data();
+  }
+
+  sum_data.gyr_x_ += data.gyr_x_;
+  sum_data.gyr_y_ += data.gyr_y_;
+  sum_data.gyr_z_ += data.gyr_z_;
+  sum_data.acc_x_ += data.acc_x_;
+  sum_data.acc_y_ += data.acc_y_;
+  sum_data.acc_z_ += data.acc_z_;
+  average_cnt++;
+
   g_last_tp_ = data.tp_;
-  g_last_stamp_ = data.stamp_;
-
-  ros::Duration final_offset(static_cast<double>(data.tp_) * 1e-3f + g_diff_s);
-  imu_msg.header.stamp = g_time_start + final_offset;
-  imu_msg.header.seq = data.frame_id_;
-
-  imu_msg.angular_velocity.x = data.gyr_x_;
-  imu_msg.angular_velocity.y = data.gyr_y_;
-  imu_msg.angular_velocity.z = data.gyr_z_;
-  imu_msg.linear_acceleration.x = data.acc_x_;
-  imu_msg.linear_acceleration.y = data.acc_y_;
-  imu_msg.linear_acceleration.z = data.acc_z_;
-
-  printf("%u,%u,%u,%zu,%lf\n", data.frame_id_, data.tp_, data.stamp_,
-         final_offset.toNSec() / 1000, g_diff_s);
-
-  g_imu_pub.publish(imu_msg);
   g_imu_cnt++;
 }
 
@@ -196,7 +200,7 @@ int main(int argc, char* argv[]) {
     if (count++ == camera_is_stable) {
       // open the imu
       if (get_imu_data_start() < 0) {
-        PCM_PRINT_ERROR("can not open the serial %s", uart1);
+        PCM_PRINT_ERROR("can not open the serial %s", uart1.c_str());
         return -1;
       }
       g_imu_is_ready = true;
