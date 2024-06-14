@@ -214,18 +214,14 @@ int main(int argc, char* argv[]) {
     std_msgs::Header header;
     header.frame_id = "camera_" + std::to_string(camera_id);
 
-    // FIXME: compare the computer time and imu time
-    header.stamp = ros::Time::now();
-
     // NOTE: compare the computer time and imu time
+    g_imu_t_mutex.lock();
     if (g_imu_is_ready) {
-      g_imu_t_mutex.lock();
-      if (g_imu_is_ready) {
-        ros::Duration diff = g_imu_time - header.stamp;
-        std::cout << "diff is " << diff << std::endl;
-      }
-      g_imu_t_mutex.unlock();
+      header.stamp = g_imu_time;
+    } else {
+      header.stamp = ros::Time::now();
     }
+    g_imu_t_mutex.unlock();
 
     sensor_msgs::ImagePtr msg =
         cv_bridge::CvImage(header, "bgr8", rgb).toImageMsg();
