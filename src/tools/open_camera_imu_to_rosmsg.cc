@@ -39,12 +39,14 @@ static unsigned int uart_baudrate = 1500000;
 
 ros::Publisher g_imu_pub;
 ros::Time g_time_start;
+ros::Duration last_offset(0, 0);
 
 struct imu_data {
   uint16_t diag_stat;
   uint16_t stamp_;
   uint32_t tp_;
   uint32_t tp_25Hz_;
+  uint32_t frame_id_;
   float gyr_x_;
   float gyr_y_;
   float gyr_z_;
@@ -76,12 +78,14 @@ void ImuCallback(unsigned char* data_block, int data_block_len) {
                         (data_block[20] << 16) | (data_block[21] << 24));
   data.tp_25Hz_ = (uint32_t)(data_block[22] | (data_block[23] << 8) |
                              (data_block[24] << 16) | (data_block[25] << 24));
+  data.frame_id_ = (uint32_t)(data_block[26] | (data_block[27] << 8) |
+                              (data_block[28] << 16) | (data_block[29] << 24));
 
   sensor_msgs::Imu imu_msg;
   imu_msg.header.frame_id = "body";
   ros::Duration offset(0, data.tp_ * 1e6);
   imu_msg.header.stamp = g_time_start + offset;
-  imu_msg.header.seq = data.stamp_;
+  imu_msg.header.seq = data.frame_id_;
 
   imu_msg.angular_velocity.x = data.gyr_x_;
   imu_msg.angular_velocity.y = data.gyr_y_;
@@ -89,6 +93,10 @@ void ImuCallback(unsigned char* data_block, int data_block_len) {
   imu_msg.linear_acceleration.x = data.acc_x_;
   imu_msg.linear_acceleration.y = data.acc_y_;
   imu_msg.linear_acceleration.z = data.acc_z_;
+
+  auto diff = offset - last_offset;
+  printf("%ud,%ld\n", data.frame_id_, diff.toNSec());
+  last_offset = offset;
 
   g_imu_pub.publish(imu_msg);
   g_imu_cnt++;
