@@ -15,6 +15,7 @@
 #include <cstdio>
 #include <cstdint>
 #include <cstring>
+#include <cmath>
 #include "sensor_config/imu_driver/serial_device.h"
 #include "sensor_config/imu_driver/imu_protocol.h"
 
@@ -38,8 +39,11 @@ static unsigned int uart_baudrate = 1500000;
 
 ros::Publisher g_imu_pub;
 ros::Time g_time_start;
+double g_diff_s = 0.0f;
 
 uint32_t g_last_tp_ = UINT32_MAX, g_last_stamp_ = UINT32_MAX;
+
+uint32_t AbsMin(uint32_t x, uint32_t y) { return (x > y) ? (x - y) : (y - x); }
 
 struct imu_data {
   uint16_t stamp_;
@@ -79,19 +83,23 @@ void ImuCallback(unsigned char* data_block, int data_block_len) {
   sensor_msgs::Imu imu_msg;
   imu_msg.header.frame_id = "body";
 
-  double diff = 0;
   if (data.tp_ == g_last_tp_) {
     if (data.stamp_ >= g_last_stamp_) {
-      diff = (data.stamp_ - g_last_stamp_) * 49.02f * 1e-3f;
+      g_diff_s +=
+          static_cast<double>(data.stamp_ - g_last_stamp_) * 49.02f * 1e-6f;
     } else {
-      diff = (811 - g_last_stamp_ + data.stamp_) * 49.02f * 1e-3f;
+      g_diff_s +=
+          static_cast<double>(AbsMin(811, g_last_stamp_) + data.stamp_) *
+          49.02f * 1e-6f;
     }
+  } else {
+    g_diff_s = 0.0f;
   }
   g_last_tp_ = data.tp_;
   g_last_stamp_ = data.stamp_;
 
-  ros::Duration offset(static_cast<double>(data.tp_ * 1.0f / 1e3f) + diff);
-  imu_msg.header.stamp = g_time_start + offset;
+  ros::Duration final_offset(static_cast<double>(data.tp_) * 1e-3f + g_diff_s);
+  imu_msg.header.stamp = g_time_start + final_offset;
   imu_msg.header.seq = data.frame_id_;
 
   imu_msg.angular_velocity.x = data.gyr_x_;
@@ -101,8 +109,10 @@ void ImuCallback(unsigned char* data_block, int data_block_len) {
   imu_msg.linear_acceleration.y = data.acc_y_;
   imu_msg.linear_acceleration.z = data.acc_z_;
 
-  g_imu_pub.publish(imu_msg);
+  printf("%u,%u,%u,%zu,%lf\n", data.frame_id_, data.tp_, data.stamp_,
+         final_offset.toNSec() / 1000, g_diff_s);
 
+  g_imu_pub.publish(imu_msg);
   g_imu_cnt++;
 }
 
