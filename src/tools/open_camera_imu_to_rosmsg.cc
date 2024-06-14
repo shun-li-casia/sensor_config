@@ -32,6 +32,7 @@
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/Imu.h>
 #include <opencv2/opencv.hpp>
+#include <mutex>
 
 struct imu_data {
   uint32_t tp_{0u};
@@ -49,7 +50,8 @@ static uint32_t g_imu_cnt = 0;
 static unsigned int uart_baudrate = 1500000;
 
 ros::Publisher g_imu_pub;
-ros::Time g_time_start;
+ros::Time g_time_start, g_imu_time;
+std::mutex g_imu_t_mutex;
 
 uint32_t g_last_tp_ = UINT32_MAX;
 imu_data sum_data;
@@ -85,8 +87,13 @@ void ImuCallback(unsigned char* data_block, int data_block_len) {
     // ready to pub
     sensor_msgs::Imu imu_msg;
     imu_msg.header.frame_id = "body";
-    ros::Duration offset(static_cast<double>(g_last_tp_) * 1e-3f);
+    ros::Duration offset(g_last_tp_ * 1e-3f);
     imu_msg.header.stamp = g_time_start + offset;
+
+    if (g_imu_t_mutex.try_lock()) {
+      g_imu_time = g_time_start + ros::Duration(data.tp_ * 1e-3f);
+      g_imu_t_mutex.unlock();
+    }
 
     imu_msg.angular_velocity.x = sum_data.gyr_x_ / average_cnt;
     imu_msg.angular_velocity.y = sum_data.gyr_y_ / average_cnt;
@@ -209,6 +216,17 @@ int main(int argc, char* argv[]) {
     std_msgs::Header header;
     header.frame_id = "camera_" + std::to_string(camera_id);
     header.stamp = ros::Time::now();
+
+    // NOTE: compare the computer time and imu time
+    if (g_imu_is_ready) {
+      g_imu_t_mutex.lock();
+      if (g_imu_is_ready) {
+        ros::Duration diff = g_imu_time - header.stamp;
+        std::cout << "diff is" << diff << std::endl;
+      }
+      g_imu_t_mutex.unlock();
+    }
+
     sensor_msgs::ImagePtr msg =
         cv_bridge::CvImage(header, "bgr8", rgb).toImageMsg();
     image_pub.publish(msg);
