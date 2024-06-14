@@ -77,23 +77,21 @@ void ImuCallback(unsigned char* data_block, int data_block_len) {
                         (data_block[14] << 16) | (data_block[15] << 24));
   data.frame_id_ = (uint32_t)(data_block[16] | (data_block[17] << 8) |
                               (data_block[18] << 16) | (data_block[19] << 24));
-
   if (is_first_frame) {
     g_last_tp_ = data.tp_;
     is_first_frame = false;
   }
 
   if (data.tp_ != g_last_tp_) {
+    g_imu_t_mutex.lock();
+    g_imu_time = g_time_start + ros::Duration(data.tp_ * 1e-3f);
+    g_imu_t_mutex.unlock();
+
     // ready to pub
     sensor_msgs::Imu imu_msg;
     imu_msg.header.frame_id = "body";
     ros::Duration offset(g_last_tp_ * 1e-3f);
     imu_msg.header.stamp = g_time_start + offset;
-
-    if (g_imu_t_mutex.try_lock()) {
-      g_imu_time = g_time_start + ros::Duration(data.tp_ * 1e-3f);
-      g_imu_t_mutex.unlock();
-    }
 
     imu_msg.angular_velocity.x = sum_data.gyr_x_ / average_cnt;
     imu_msg.angular_velocity.y = sum_data.gyr_y_ / average_cnt;
@@ -215,6 +213,8 @@ int main(int argc, char* argv[]) {
     // pub as ros msg
     std_msgs::Header header;
     header.frame_id = "camera_" + std::to_string(camera_id);
+
+    // FIXME: compare the computer time and imu time
     header.stamp = ros::Time::now();
 
     // NOTE: compare the computer time and imu time
