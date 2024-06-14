@@ -39,13 +39,12 @@ static unsigned int uart_baudrate = 1500000;
 
 ros::Publisher g_imu_pub;
 ros::Time g_time_start;
-ros::Duration last_offset(0, 0);
+
+uint32_t g_last_tp_ = UINT32_MAX, g_last_stamp_ = UINT32_MAX;
 
 struct imu_data {
-  uint16_t diag_stat;
   uint16_t stamp_;
   uint32_t tp_;
-  uint32_t tp_25Hz_;
   uint32_t frame_id_;
   float gyr_x_;
   float gyr_y_;
@@ -63,27 +62,36 @@ void ImuCallback(unsigned char* data_block, int data_block_len) {
   }
 
   struct imu_data data;
-  data.diag_stat = (int16_t)(data_block[0] | (data_block[1] << 8));
-  data.gyr_x_ = (int16_t)(data_block[2] | (data_block[3] << 8)) * 1.0 * 0.025;
-  data.gyr_y_ = (int16_t)(data_block[4] | (data_block[5] << 8)) * 1.0 * 0.025;
-  data.gyr_z_ = (int16_t)(data_block[6] | (data_block[7] << 8)) * 1.0 * 0.025;
-  data.acc_x_ = (int16_t)(data_block[8] | (data_block[9] << 8)) * 1.0 * 0.00025;
-  data.acc_y_ =
-      (int16_t)(data_block[10] | (data_block[11] << 8)) * 1.0 * 0.00025;
+
+  data.gyr_x_ = (int16_t)(data_block[0] | (data_block[1] << 8)) * 1.0 * 0.025;
+  data.gyr_y_ = (int16_t)(data_block[2] | (data_block[3] << 8)) * 1.0 * 0.025;
+  data.gyr_z_ = (int16_t)(data_block[4] | (data_block[5] << 8)) * 1.0 * 0.025;
+  data.acc_x_ = (int16_t)(data_block[6] | (data_block[7] << 8)) * 1.0 * 0.00025;
+  data.acc_y_ = (int16_t)(data_block[8] | (data_block[9] << 8)) * 1.0 * 0.00025;
   data.acc_z_ =
-      (int16_t)(data_block[12] | (data_block[13] << 8)) * 1.0 * 0.00025;
-  data.temp_ = (int16_t)(data_block[14] | (data_block[15] << 8)) * 1.0 * 0.1;
-  data.stamp_ = (int16_t)(data_block[16] | (data_block[17] << 8));
-  data.tp_ = (uint32_t)(data_block[18] | (data_block[19] << 8) |
-                        (data_block[20] << 16) | (data_block[21] << 24));
-  data.tp_25Hz_ = (uint32_t)(data_block[22] | (data_block[23] << 8) |
-                             (data_block[24] << 16) | (data_block[25] << 24));
-  data.frame_id_ = (uint32_t)(data_block[26] | (data_block[27] << 8) |
-                              (data_block[28] << 16) | (data_block[29] << 24));
+      (int16_t)(data_block[10] | (data_block[11] << 8)) * 1.0 * 0.00025;
+  data.temp_ = (int16_t)(data_block[12] | (data_block[13] << 8)) * 1.0 * 0.1;
+  data.stamp_ = (int16_t)(data_block[14] | (data_block[15] << 8));
+  data.tp_ = (uint32_t)(data_block[16] | (data_block[17] << 8) |
+                        (data_block[18] << 16) | (data_block[19] << 24));
+  data.frame_id_ = (uint32_t)(data_block[20] | (data_block[21] << 8) |
+                              (data_block[22] << 16) | (data_block[23] << 24));
 
   sensor_msgs::Imu imu_msg;
   imu_msg.header.frame_id = "body";
-  ros::Duration offset(0, data.tp_ * 1e6);
+
+  double diff = 0;
+  if (data.tp_ == g_last_tp_) {
+    if (data.stamp_ >= g_last_stamp_) {
+      diff = (data.stamp_ - g_last_stamp_) * 49.02f * 1e-3f;
+    } else {
+      diff = (811 - g_last_stamp_ + data.stamp_) * 49.02f * 1e-3f;
+    }
+  }
+  g_last_tp_ = data.tp_;
+  g_last_stamp_ = data.stamp_;
+
+  ros::Duration offset(static_cast<double>(data.tp_ * 1.0f / 1e3f) + diff);
   imu_msg.header.stamp = g_time_start + offset;
   imu_msg.header.seq = data.frame_id_;
 
@@ -94,11 +102,8 @@ void ImuCallback(unsigned char* data_block, int data_block_len) {
   imu_msg.linear_acceleration.y = data.acc_y_;
   imu_msg.linear_acceleration.z = data.acc_z_;
 
-  auto diff = offset - last_offset;
-  printf("%ud,%ld\n", data.frame_id_, diff.toNSec());
-  last_offset = offset;
-
   g_imu_pub.publish(imu_msg);
+
   g_imu_cnt++;
 }
 
