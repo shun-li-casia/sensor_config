@@ -11,7 +11,7 @@ extern "C" {
 
 typedef void (*CALLBACK_PARSE)(unsigned char* data_block, int data_block_len);
 
-int Serial_Device_Init(char* uart, unsigned int baudrate);  // 串口设备初始化
+int Serial_Device_Init(const char* uart, unsigned int baudrate);  // 串口设备初始化
 
 int Set_Serial_Parse_Callback(
     CALLBACK_PARSE callback_ptr);  // 设置串口设备数据解析回调

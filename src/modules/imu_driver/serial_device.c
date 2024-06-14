@@ -228,7 +228,7 @@ static int Uart_Set(int fd, int speed, int flow_ctrl, int databits,
   return 0;
 }
 
-static int Uart_Init(char* uart, unsigned int baudrate)  // 串口初始化
+static int Uart_Init(const char* uart, unsigned int baudrate)  // 串口初始化
 {
   fd_uart = open(uart, O_RDWR | O_NOCTTY | O_NDELAY);
   if (fd_uart > 0) {
@@ -260,7 +260,7 @@ static int Uart_Init(char* uart, unsigned int baudrate)  // 串口初始化
   return -1;
 }
 
-int Serial_Device_Init(char* uart, unsigned int baudrate)  // 串口设备初始化
+int Serial_Device_Init(const char* uart, unsigned int baudrate)  // 串口设备初始化
 {
   if (uart_callback != NULL) {
     return Uart_Init(uart, baudrate);  // MCU 串口

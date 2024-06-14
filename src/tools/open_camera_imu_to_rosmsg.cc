@@ -34,7 +34,6 @@
 
 static bool g_imu_is_ready = false;
 static uint32_t g_imu_cnt = 0;
-static char uart1[] = "/dev/ttyUSB0";
 static unsigned int uart_baudrate = 1500000;
 
 ros::Publisher g_imu_pub;
@@ -110,13 +109,15 @@ void ImuCallback(unsigned char* data_block, int data_block_len) {
 int main(int argc, char* argv[]) {
   cmdline::parser par;
 
-  par.add<int>("camera_id", 'c', "camera id", false, 0);
+  par.add<int>("imu_uart", 'i', "imu_uart id", true, 0);
+  par.add<int>("camera_id", 'c', "camera id", true, 0);
   par.parse_check(argc, argv);
 
   ros::init(argc, argv, "open_camera_imu_to_rosmsg_node");
   ros::NodeHandle nh;
 
   // init imu
+  std::string uart1 = "/dev/ttyUSB" + std::to_string(par.get<int>("imu_uart"));
   if (Set_Serial_Parse_Callback(ImuCallback) < 0) {
     PCM_PRINT_ERROR("set imu callback failed!\n");
     return -1;
@@ -124,11 +125,11 @@ int main(int argc, char* argv[]) {
     PCM_PRINT_INFO("set imu callback successfully!\n");
   }
 
-  if (Serial_Device_Init(uart1, uart_baudrate) < 0) {
-    PCM_PRINT_ERROR("open %s failed!\n", uart1);
+  if (Serial_Device_Init(uart1.c_str(), uart_baudrate) < 0) {
+    PCM_PRINT_ERROR("open %s failed!\n", uart1.c_str());
     return -1;
   } else {
-    PCM_PRINT_INFO("open %s successfully!\n", uart1);
+    PCM_PRINT_INFO("open %s successfully!\n", uart1.c_str());
   }
 
   int camera_id = par.get<int>("camera_id");
