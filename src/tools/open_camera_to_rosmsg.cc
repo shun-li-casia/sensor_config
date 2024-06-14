@@ -29,9 +29,8 @@
 int main(int argc, char** argv) {
   cmdline::parser par;
 
-  par.add<int>("camera_id", 'i', "camera id", true);
-  par.add<int>("pub_downsample_rate", 'd', "publish frequency downsample rate",
-               true, 1);
+  par.add<int>("camera_id", 'c', "camera id", true);
+  par.add<int>("pub_downsample_rate", 'r', "publish frequency rate", true, 1);
   par.parse_check(argc, argv);
   int camera_id = par.get<int>("camera_id");
   int pub_downsample_rate = par.get<int>("pub_downsample_rate");

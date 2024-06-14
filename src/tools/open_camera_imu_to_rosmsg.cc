@@ -41,17 +41,17 @@ ros::Publisher g_imu_pub;
 ros::Time g_time_start;
 
 struct imu_data {
-  uint16_t DIAG_STAT;
-  uint16_t STAMP;
-  uint32_t TIMESTAMP;
-  uint32_t TIMESTAMP_25HZ;
-  float X_GYRO_OUT;
-  float Y_GYRO_OUT;
-  float Z_GYRO_OUT;
-  float X_ACCL_OUT;
-  float Y_ACCL_OUT;
-  float Z_ACCL_OUT;
-  float TEMP_OUT;
+  uint16_t diag_stat;
+  uint16_t stamp_;
+  uint32_t tp_;
+  uint32_t tp_25Hz_;
+  float gyr_x_;
+  float gyr_y_;
+  float gyr_z_;
+  float acc_x_;
+  float acc_y_;
+  float acc_z_;
+  float temp_;
 };
 
 void ImuCallback(unsigned char* data_block, int data_block_len) {
@@ -61,39 +61,34 @@ void ImuCallback(unsigned char* data_block, int data_block_len) {
   }
 
   struct imu_data data;
-  data.DIAG_STAT = (int16_t)(data_block[0] | (data_block[1] << 8));
-  data.X_GYRO_OUT =
-      (int16_t)(data_block[2] | (data_block[3] << 8)) * 1.0 * 0.025;
-  data.Y_GYRO_OUT =
-      (int16_t)(data_block[4] | (data_block[5] << 8)) * 1.0 * 0.025;
-  data.Z_GYRO_OUT =
-      (int16_t)(data_block[6] | (data_block[7] << 8)) * 1.0 * 0.025;
-  data.X_ACCL_OUT =
-      (int16_t)(data_block[8] | (data_block[9] << 8)) * 1.0 * 0.00025;
-  data.Y_ACCL_OUT =
+  data.diag_stat = (int16_t)(data_block[0] | (data_block[1] << 8));
+  data.gyr_x_ = (int16_t)(data_block[2] | (data_block[3] << 8)) * 1.0 * 0.025;
+  data.gyr_y_ = (int16_t)(data_block[4] | (data_block[5] << 8)) * 1.0 * 0.025;
+  data.gyr_z_ = (int16_t)(data_block[6] | (data_block[7] << 8)) * 1.0 * 0.025;
+  data.acc_x_ = (int16_t)(data_block[8] | (data_block[9] << 8)) * 1.0 * 0.00025;
+  data.acc_y_ =
       (int16_t)(data_block[10] | (data_block[11] << 8)) * 1.0 * 0.00025;
-  data.Z_ACCL_OUT =
+  data.acc_z_ =
       (int16_t)(data_block[12] | (data_block[13] << 8)) * 1.0 * 0.00025;
-  data.TEMP_OUT = (int16_t)(data_block[14] | (data_block[15] << 8)) * 1.0 * 0.1;
-  data.STAMP = (int16_t)(data_block[16] | (data_block[17] << 8));
-  data.TIMESTAMP = (uint32_t)(data_block[18] | (data_block[19] << 8) |
-                              (data_block[20] << 16) | (data_block[21] << 24));
-  data.TIMESTAMP_25HZ =
-      (uint32_t)(data_block[22] | (data_block[23] << 8) |
-                 (data_block[24] << 16) | (data_block[25] << 24));
+  data.temp_ = (int16_t)(data_block[14] | (data_block[15] << 8)) * 1.0 * 0.1;
+  data.stamp_ = (int16_t)(data_block[16] | (data_block[17] << 8));
+  data.tp_ = (uint32_t)(data_block[18] | (data_block[19] << 8) |
+                        (data_block[20] << 16) | (data_block[21] << 24));
+  data.tp_25Hz_ = (uint32_t)(data_block[22] | (data_block[23] << 8) |
+                             (data_block[24] << 16) | (data_block[25] << 24));
 
   sensor_msgs::Imu imu_msg;
   imu_msg.header.frame_id = "body";
-  ros::Duration offset(0, data.TIMESTAMP * 1e6);
+  ros::Duration offset(0, data.tp_ * 1e6);
   imu_msg.header.stamp = g_time_start + offset;
-  imu_msg.header.seq = data.STAMP;
+  imu_msg.header.seq = data.stamp_;
 
-  imu_msg.angular_velocity.x = data.X_GYRO_OUT;
-  imu_msg.angular_velocity.y = data.Y_GYRO_OUT;
-  imu_msg.angular_velocity.z = data.Z_GYRO_OUT;
-  imu_msg.linear_acceleration.x = data.X_ACCL_OUT;
-  imu_msg.linear_acceleration.y = data.Y_ACCL_OUT;
-  imu_msg.linear_acceleration.z = data.Z_ACCL_OUT;
+  imu_msg.angular_velocity.x = data.gyr_x_;
+  imu_msg.angular_velocity.y = data.gyr_y_;
+  imu_msg.angular_velocity.z = data.gyr_z_;
+  imu_msg.linear_acceleration.x = data.acc_x_;
+  imu_msg.linear_acceleration.y = data.acc_y_;
+  imu_msg.linear_acceleration.z = data.acc_z_;
 
   g_imu_pub.publish(imu_msg);
   g_imu_cnt++;
@@ -109,8 +104,19 @@ int main(int argc, char* argv[]) {
   ros::NodeHandle nh;
 
   // init imu
-  Set_Serial_Parse_Callback(ImuCallback);
-  Serial_Device_Init(uart1, uart_baudrate);
+  if (Set_Serial_Parse_Callback(ImuCallback) < 0) {
+    PCM_PRINT_ERROR("set imu callback failed!\n");
+    return -1;
+  } else {
+    PCM_PRINT_INFO("set imu callback successfully!\n");
+  }
+
+  if (Serial_Device_Init(uart1, uart_baudrate) < 0) {
+    PCM_PRINT_ERROR("open %s failed!\n", uart1);
+    return -1;
+  } else {
+    PCM_PRINT_INFO("open %s successfully!\n", uart1);
+  }
 
   int camera_id = par.get<int>("camera_id");
   ros::Publisher image_pub = nh.advertise<sensor_msgs::Image>(
@@ -191,8 +197,12 @@ int main(int argc, char* argv[]) {
   }
 
   cap.release();
-  get_imu_data_stop();
-  Serial_Device_UnInit();  // 串口设备注销
+  for (int i = 0; i < 5; ++i) {
+    get_imu_data_stop();
+    ros::Duration(0.0002).sleep();
+  }
+
+  Serial_Device_UnInit();
   PCM_PRINT_INFO("the node is shutdown!\n");
   return 0;
 }
