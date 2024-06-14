@@ -34,7 +34,6 @@
 #include <opencv2/opencv.hpp>
 
 struct imu_data {
-  uint16_t stamp_{0u};
   uint32_t tp_{0u};
   uint32_t frame_id_{0u};
   float gyr_x_{0.0f};
@@ -43,7 +42,6 @@ struct imu_data {
   float acc_x_{0.0f};
   float acc_y_{0.0f};
   float acc_z_{0.0f};
-  float temp_{0.0f};
 };
 
 static bool g_imu_is_ready = false;
@@ -73,13 +71,10 @@ void ImuCallback(unsigned char* data_block, int data_block_len) {
   data.acc_y_ = (int16_t)(data_block[8] | (data_block[9] << 8)) * 1.0 * 0.00025;
   data.acc_z_ =
       (int16_t)(data_block[10] | (data_block[11] << 8)) * 1.0 * 0.00025;
-  data.temp_ = (int16_t)(data_block[12] | (data_block[13] << 8)) * 1.0 * 0.1;
-  data.stamp_ = (int16_t)(data_block[14] | (data_block[15] << 8));
-  data.tp_ = (uint32_t)(data_block[16] | (data_block[17] << 8) |
-                        (data_block[18] << 16) | (data_block[19] << 24));
-  data.frame_id_ = (uint32_t)(data_block[20] | (data_block[21] << 8) |
-                              (data_block[22] << 16) | (data_block[23] << 24));
-
+  data.tp_ = (uint32_t)(data_block[12] | (data_block[13] << 8) |
+                        (data_block[14] << 16) | (data_block[15] << 24));
+  data.frame_id_ = (uint32_t)(data_block[16] | (data_block[17] << 8) |
+                              (data_block[18] << 16) | (data_block[19] << 24));
 
   if (is_first_frame) {
     g_last_tp_ = data.tp_;
