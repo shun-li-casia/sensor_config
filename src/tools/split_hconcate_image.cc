@@ -90,12 +90,26 @@ int main(int argc, char** argv) {
   image_transport::Subscriber sub = it.subscribe(
       "hconcate_image_cam_" + std::to_string(camera_id), 10, imageCallback);
 
-  pub_left = it.advertise("cam_" + std::to_string(camera_id) + "_img_0", 10);
-  pub_right = it.advertise("cam_" + std::to_string(camera_id) + "_img_1", 10);
+  std::string left_topic = "cam_" + std::to_string(camera_id) + "_img_0";
+  std::string right_topic = "cam_" + std::to_string(camera_id) + "_img_1";
+
+  pub_left = it.advertise(left_topic, 10);
+  pub_right = it.advertise(right_topic, 10);
 
   int rate = par.get<int>("publish_rate");
+  PCM_PRINT_INFO("camera_id: %d, publish_rate: %d \n", camera_id, rate);
+  if (rate < 1) {
+    PCM_PRINT_WARN("publish_rate should be greater or equal than 1! \n");
+    rate = 1;
+  } else if (rate > 25) {
+    PCM_PRINT_WARN("publish_rate should be less or equal than 25! \n");
+    rate = 25;
+  }
+
   rate_cnt = 25 / rate;
 
+  PCM_PRINT_INFO("start to publish left and right image on %s and %s \n",
+                 left_topic.c_str(), right_topic.c_str());
   ros::spin();
   return 0;
 }
