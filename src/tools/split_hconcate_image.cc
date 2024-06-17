@@ -30,8 +30,13 @@ image_transport::Publisher pub_left;
 image_transport::Publisher pub_right;
 
 int camera_id;
+int rate_cnt = 0, callback_cnt = 0;
+int img_seq = 0;
 
 void imageCallback(const sensor_msgs::ImageConstPtr& msg) {
+  if (++callback_cnt != rate_cnt) return;
+  callback_cnt = 0;
+
   try {
     hconcate_img = cv_bridge::toCvCopy(msg, "bgr8")->image;
     hconcate_img_header = msg->header;
@@ -56,8 +61,10 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg) {
   }
   std_msgs::Header l_header = hconcate_img_header;
   l_header.frame_id = "cam_" + std::to_string(camera_id) + "_img_0";
+  l_header.seq = img_seq;
   std_msgs::Header r_header = hconcate_img_header;
   r_header.frame_id = "cam_" + std::to_string(camera_id) + "_img_1";
+  r_header.seq = img_seq++;
 
   sensor_msgs::ImagePtr left_msg =
       cv_bridge::CvImage(l_header, "bgr8", leftImage).toImageMsg();
@@ -70,7 +77,8 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg) {
 
 int main(int argc, char** argv) {
   cmdline::parser par;
-  par.add<int>("camera_id", 'c', "camera id", false, 0);
+  par.add<int>("camera_id", 'c', "camera id", true, 0);
+  par.add<int>("publish_rate", 'r', "publish rate", true, 0);
   par.parse_check(argc, argv);
   camera_id = par.get<int>("camera_id");
 
@@ -84,6 +92,9 @@ int main(int argc, char** argv) {
 
   pub_left = it.advertise("cam_" + std::to_string(camera_id) + "_img_0", 10);
   pub_right = it.advertise("cam_" + std::to_string(camera_id) + "_img_1", 10);
+
+  int rate = par.get<int>("publish_rate");
+  rate_cnt = 25 / rate;
 
   ros::spin();
   return 0;
