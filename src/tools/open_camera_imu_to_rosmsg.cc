@@ -148,7 +148,7 @@ int main(int argc, char* argv[]) {
 
   int camera_id = par.get<int>("camera_id");
   ros::Publisher image_pub = nh.advertise<sensor_msgs::Image>(
-      "image_raw_" + std::to_string(camera_id), 1);
+      "hconcate_image_cam_" + std::to_string(camera_id), 1);
   g_imu_pub = nh.advertise<sensor_msgs::Imu>("imu_raw_0", 10000);
 
   cv::VideoCapture cap;

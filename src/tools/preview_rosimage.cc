@@ -52,7 +52,7 @@ int main(int argc, char** argv) {
 
   // Subscribe to the image topic, e.g., "/camera/image_raw"; adjust as needed
   image_transport::Subscriber sub =
-      it.subscribe("/image_raw_0", 1, imageCallback);
+      it.subscribe("/hconcate_image_cam_0", 1, imageCallback);
 
   // Spin to start the ROS event processing loop
   ros::spin();
