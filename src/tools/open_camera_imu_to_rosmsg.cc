@@ -60,6 +60,8 @@ imu_data sum_data;
 uint32_t average_cnt = 0;
 bool is_first_frame = true;
 
+uint32_t g_imu_seq = 0, g_img_seq = 0;
+
 void ImuCallback(unsigned char* data_block, int data_block_len) {
   if (!g_imu_is_ready) {
     ros::Duration(0, 1e6);
@@ -94,6 +96,7 @@ void ImuCallback(unsigned char* data_block, int data_block_len) {
     // ready to pub
     sensor_msgs::Imu imu_msg;
     imu_msg.header.frame_id = "body";
+    imu_msg.header.seq = g_imu_seq++;
     ros::Duration offset(g_last_tp_ * 1e-3f);
     imu_msg.header.stamp = g_time_start + offset;
 
@@ -216,6 +219,7 @@ int main(int argc, char* argv[]) {
 
     // pub as ros msg
     std_msgs::Header header;
+    header.seq = g_img_seq++;
     header.frame_id = "camera_" + std::to_string(camera_id);
 
     // NOTE: compare the computer time and imu time
