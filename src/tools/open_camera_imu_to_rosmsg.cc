@@ -45,6 +45,8 @@ struct imu_data {
   float acc_z_{0.0f};
 };
 
+constexpr float g = -9.8015f;
+
 static bool g_imu_is_ready = false;
 static uint32_t g_imu_cnt = 0;
 static unsigned int uart_baudrate = 1500000;
@@ -69,10 +71,12 @@ void ImuCallback(unsigned char* data_block, int data_block_len) {
   data.gyr_x_ = (int16_t)(data_block[0] | (data_block[1] << 8)) * 1.0 * 0.025;
   data.gyr_y_ = (int16_t)(data_block[2] | (data_block[3] << 8)) * 1.0 * 0.025;
   data.gyr_z_ = (int16_t)(data_block[4] | (data_block[5] << 8)) * 1.0 * 0.025;
-  data.acc_x_ = (int16_t)(data_block[6] | (data_block[7] << 8)) * 1.0 * 0.00025;
-  data.acc_y_ = (int16_t)(data_block[8] | (data_block[9] << 8)) * 1.0 * 0.00025;
+  data.acc_x_ =
+      (int16_t)(data_block[6] | (data_block[7] << 8)) * 1.0 * 0.00025 * g;
+  data.acc_y_ =
+      (int16_t)(data_block[8] | (data_block[9] << 8)) * 1.0 * 0.00025 * g;
   data.acc_z_ =
-      (int16_t)(data_block[10] | (data_block[11] << 8)) * 1.0 * 0.00025;
+      (int16_t)(data_block[10] | (data_block[11] << 8)) * 1.0 * 0.00025 * g;
   data.tp_ = (uint32_t)(data_block[12] | (data_block[13] << 8) |
                         (data_block[14] << 16) | (data_block[15] << 24));
   data.frame_id_ = (uint32_t)(data_block[16] | (data_block[17] << 8) |
