@@ -45,7 +45,7 @@ struct imu_data {
   float acc_z_{0.0f};
 };
 
-constexpr float g = -9.8015f;
+constexpr float g = 9.8015f;
 
 static bool g_imu_is_ready = false;
 static uint32_t g_imu_cnt = 0;
@@ -242,7 +242,7 @@ int main(int argc, char* argv[]) {
   }
 
   cap.release();
-  for (int i = 0; i < 5; ++i) {
+  for (int i = 0; i < 20; ++i) {
     get_imu_data_stop();
     ros::Duration(0.0002).sleep();
   }
