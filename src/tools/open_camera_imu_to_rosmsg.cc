@@ -24,6 +24,7 @@
 #include "utility_tool/print_ctrl_macro.h"
 #include "utility_tool/pcm_debug_helper.h"
 #include "utility_tool/system_lib.h"
+#include <cmath>
 
 #include <ros/duration.h>
 #include <ros/duration.h>
@@ -46,6 +47,7 @@ struct imu_data {
 };
 
 constexpr float g = 9.8015f;
+constexpr float pi_div_180 = M_PI / 180.0f;
 
 static bool g_imu_is_ready = false;
 static uint32_t g_imu_cnt = 0;
@@ -70,9 +72,9 @@ void ImuCallback(unsigned char* data_block, int data_block_len) {
 
   struct imu_data data;
 
-  data.gyr_x_ = (int16_t)(data_block[0] | (data_block[1] << 8)) * 1.0 * 0.025;
-  data.gyr_y_ = (int16_t)(data_block[2] | (data_block[3] << 8)) * 1.0 * 0.025;
-  data.gyr_z_ = (int16_t)(data_block[4] | (data_block[5] << 8)) * 1.0 * 0.025;
+  data.gyr_x_ = (int16_t)(data_block[0] | (data_block[1] << 8)) * 1.0 * 0.025 * pi_div_180;
+  data.gyr_y_ = (int16_t)(data_block[2] | (data_block[3] << 8)) * 1.0 * 0.025 * pi_div_180;
+  data.gyr_z_ = (int16_t)(data_block[4] | (data_block[5] << 8)) * 1.0 * 0.025 * pi_div_180;
   data.acc_x_ =
       (int16_t)(data_block[6] | (data_block[7] << 8)) * 1.0 * 0.00025 * g;
   data.acc_y_ =
