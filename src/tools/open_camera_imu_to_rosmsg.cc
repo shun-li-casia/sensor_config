@@ -49,6 +49,9 @@ struct imu_data {
 constexpr float g = 9.8015f;
 constexpr float pi_div_180 = M_PI / 180.0f;
 
+// t_imu = t_cam + time_shift
+constexpr double time_shift = -0.036f;
+
 static bool g_imu_is_ready = false;
 static uint32_t g_imu_cnt = 0;
 static unsigned int uart_baudrate = 1500000;
@@ -227,7 +230,7 @@ int main(int argc, char* argv[]) {
     // NOTE: compare the computer time and imu time
     g_imu_t_mutex.lock();
     if (g_imu_is_ready) {
-      header.stamp = g_imu_time;
+      header.stamp = g_imu_time + ros::Duration(time_shift);
     } else {
       header.stamp = ros::Time::now();
     }
@@ -244,7 +247,7 @@ int main(int argc, char* argv[]) {
   }
 
   cap.release();
-  for (int i = 0; i < 20; ++i) {
+  for (int i = 0; i < 100; ++i) {
     get_imu_data_stop();
     ros::Duration(0.0002).sleep();
   }
