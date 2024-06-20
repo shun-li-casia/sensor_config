@@ -217,6 +217,7 @@ int main(int argc, char* argv[]) {
       }
       g_imu_is_ready = true;
       g_time_start = ros::Time::now();
+      g_imu_time = g_time_start;
       PCM_PRINT_INFO("start IMU!\n");
     }
 
