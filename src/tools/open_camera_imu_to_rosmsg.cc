@@ -36,14 +36,15 @@
 #include <mutex>
 
 struct imu_data {
-  uint32_t tp_{0u};
-  uint32_t frame_id_{0u};
   float gyr_x_{0.0f};
   float gyr_y_{0.0f};
   float gyr_z_{0.0f};
   float acc_x_{0.0f};
   float acc_y_{0.0f};
   float acc_z_{0.0f};
+  uint16_t stamp_{0};
+  uint32_t tp_{0u};
+  uint32_t frame_id_{0u};
 };
 
 constexpr float g = 9.8015f;
@@ -60,10 +61,10 @@ ros::Publisher g_imu_pub;
 ros::Time g_time_start, g_imu_time;
 std::mutex g_imu_t_mutex;
 
-uint32_t g_last_tp_ = UINT32_MAX;
-imu_data sum_data;
-uint32_t average_cnt = 0;
-bool is_first_frame = true;
+uint32_t g_last_tp = UINT32_MAX;
+uint16_t g_last_stamp = UINT16_MAX;
+bool g_is_first_frame = true;
+constexpr double g_imu_t_step_s = 49.02 * 1e-6;
 
 uint32_t g_imu_seq = 0, g_img_seq = 0;
 
@@ -75,60 +76,68 @@ void ImuCallback(unsigned char* data_block, int data_block_len) {
 
   struct imu_data data;
 
-  data.gyr_x_ = (int16_t)(data_block[0] | (data_block[1] << 8)) * 1.0 * 0.025 * pi_div_180;
-  data.gyr_y_ = (int16_t)(data_block[2] | (data_block[3] << 8)) * 1.0 * 0.025 * pi_div_180;
-  data.gyr_z_ = (int16_t)(data_block[4] | (data_block[5] << 8)) * 1.0 * 0.025 * pi_div_180;
+  data.gyr_x_ = (int16_t)(data_block[0] | (data_block[1] << 8)) * 1.0 * 0.025 *
+                pi_div_180;
+  data.gyr_y_ = (int16_t)(data_block[2] | (data_block[3] << 8)) * 1.0 * 0.025 *
+                pi_div_180;
+  data.gyr_z_ = (int16_t)(data_block[4] | (data_block[5] << 8)) * 1.0 * 0.025 *
+                pi_div_180;
   data.acc_x_ =
       (int16_t)(data_block[6] | (data_block[7] << 8)) * 1.0 * 0.00025 * g;
   data.acc_y_ =
       (int16_t)(data_block[8] | (data_block[9] << 8)) * 1.0 * 0.00025 * g;
   data.acc_z_ =
       (int16_t)(data_block[10] | (data_block[11] << 8)) * 1.0 * 0.00025 * g;
-  data.tp_ = (uint32_t)(data_block[12] | (data_block[13] << 8) |
-                        (data_block[14] << 16) | (data_block[15] << 24));
-  data.frame_id_ = (uint32_t)(data_block[16] | (data_block[17] << 8) |
-                              (data_block[18] << 16) | (data_block[19] << 24));
-  if (is_first_frame) {
-    g_last_tp_ = data.tp_;
-    is_first_frame = false;
-  }
+  data.stamp_ = (uint16_t)(data_block[12] | (data_block[13] << 8));
+  data.tp_ = (uint32_t)(data_block[14] | (data_block[15] << 8) |
+                        (data_block[16] << 16) | (data_block[17] << 24));
+  data.frame_id_ = (uint32_t)(data_block[18] | (data_block[19] << 8) |
+                              (data_block[20] << 16) | (data_block[21] << 24));
 
-  if (data.tp_ != g_last_tp_) {
+  if (g_is_first_frame) {
+    g_is_first_frame = false;
+    g_time_start = ros::Time::now();
     g_imu_t_mutex.lock();
-    g_imu_time = g_time_start + ros::Duration(data.tp_ * 1e-3f);
+    g_imu_time = g_time_start;
+    g_imu_t_mutex.unlock();
+  } else {
+    double time_diff_s = 0.0f;
+    double tp_diff_ms = data.tp_ - g_last_tp;
+    if (tp_diff_ms > 35) {
+      PCM_PRINT_WARN("lost one imu frame!\n");
+      time_diff_s = tp_diff_ms * 1e-3;
+    } else {
+      if (data.stamp_ > g_last_stamp) {
+        uint16_t stamp_diff = data.stamp_ - g_last_stamp;
+        time_diff_s = stamp_diff * g_imu_t_step_s;
+      } else if (data.stamp_ < g_last_stamp) {
+        uint16_t stamp_diff = 812 - g_last_stamp + 10 + data.stamp_;
+        time_diff_s = stamp_diff * g_imu_t_step_s;
+      }
+    }
+
+    g_imu_t_mutex.lock();
+    g_imu_time += ros::Duration(time_diff_s);
     g_imu_t_mutex.unlock();
 
-    // ready to pub
-    sensor_msgs::Imu imu_msg;
-    imu_msg.header.frame_id = "body";
-    imu_msg.header.seq = g_imu_seq++;
-    ros::Duration offset(g_last_tp_ * 1e-3f);
-    imu_msg.header.stamp = g_time_start + offset;
-
-    imu_msg.angular_velocity.x = sum_data.gyr_x_ / average_cnt;
-    imu_msg.angular_velocity.y = sum_data.gyr_y_ / average_cnt;
-    imu_msg.angular_velocity.z = sum_data.gyr_z_ / average_cnt;
-    imu_msg.linear_acceleration.x = sum_data.acc_x_ / average_cnt;
-    imu_msg.linear_acceleration.y = sum_data.acc_y_ / average_cnt;
-    imu_msg.linear_acceleration.z = sum_data.acc_z_ / average_cnt;
-
-    g_imu_pub.publish(imu_msg);
-    // printf("%u,%zu\n", data.tp_, offset.toNSec() / 1000);
-
-    // reset the data
-    average_cnt = 0;
-    sum_data = imu_data();
+    std::cout << time_diff_s << std::endl;
   }
 
-  sum_data.gyr_x_ += data.gyr_x_;
-  sum_data.gyr_y_ += data.gyr_y_;
-  sum_data.gyr_z_ += data.gyr_z_;
-  sum_data.acc_x_ += data.acc_x_;
-  sum_data.acc_y_ += data.acc_y_;
-  sum_data.acc_z_ += data.acc_z_;
-  average_cnt++;
+  sensor_msgs::Imu imu_msg;
+  imu_msg.header.seq = data.frame_id_;
+  imu_msg.header.stamp = g_imu_time;
+  imu_msg.header.frame_id = "imu_raw_0";
+  imu_msg.angular_velocity.x = data.gyr_x_;
+  imu_msg.angular_velocity.y = data.gyr_y_;
+  imu_msg.angular_velocity.z = data.gyr_z_;
+  imu_msg.linear_acceleration.x = data.acc_x_;
+  imu_msg.linear_acceleration.y = data.acc_y_;
+  imu_msg.linear_acceleration.z = data.acc_z_;
 
-  g_last_tp_ = data.tp_;
+  g_imu_pub.publish(imu_msg);
+
+  g_last_tp = data.tp_;
+  g_last_stamp = data.stamp_;
   g_imu_cnt++;
 }
 
