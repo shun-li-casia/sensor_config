@@ -119,8 +119,6 @@ void ImuCallback(unsigned char* data_block, int data_block_len) {
     g_imu_t_mutex.lock();
     g_imu_time += ros::Duration(time_diff_s);
     g_imu_t_mutex.unlock();
-
-    std::cout << time_diff_s << std::endl;
   }
 
   sensor_msgs::Imu imu_msg;
@@ -257,10 +255,6 @@ int main(int argc, char* argv[]) {
   }
 
   cap.release();
-  for (int i = 0; i < 100; ++i) {
-    get_imu_data_stop();
-    ros::Duration(0.0002).sleep();
-  }
 
   Serial_Device_UnInit();
   PCM_PRINT_INFO("the node is shutdown!\n");
