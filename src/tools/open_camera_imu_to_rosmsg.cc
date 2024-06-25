@@ -68,6 +68,18 @@ constexpr double g_imu_t_step_s = 49.02 * 1e-6;
 
 uint32_t g_imu_seq = 0, g_img_seq = 0;
 
+ros::Time g_last_imu_time;
+double ImuMsgCheckIntervalMs(const ros::Time& time_now) {
+  if (g_last_imu_time.is_zero()) {
+    g_last_imu_time = time_now;
+    return 0.0f;
+  }
+
+  auto interval = time_now - g_last_imu_time;
+  g_last_imu_time = time_now;
+  return interval.toSec() * 1e3;
+}
+
 void ImuCallback(unsigned char* data_block, int data_block_len) {
   if (!g_imu_is_ready) {
     ros::Duration(0, 1e6);
@@ -118,6 +130,11 @@ void ImuCallback(unsigned char* data_block, int data_block_len) {
 
     g_imu_t_mutex.lock();
     g_imu_time += ros::Duration(time_diff_s);
+    // std::cout << "data.tp_," << data.tp_ << ",data.stamp_," << data.stamp_
+    //           << ","
+    //           << "time_diff_s," << time_diff_s << ","
+    //           << ImuMsgCheckIntervalMs(g_imu_time) << std::endl;
+    ;
     g_imu_t_mutex.unlock();
   }
 
