@@ -32,13 +32,14 @@ catkin_package(
 
 add_library(
   ${PROJECT_NAME}
-  src/camera_model/camera.cc
-  src/camera_model/pinhole_camera.cc
+  ./src/imu_model/imu.cc
+  ./src/camera_model/camera.cc
+  ./src/camera_model/pinhole_camera.cc
   ./src/modules/stereo_rectifier.cc
   ./src/modules/stereo_cam_config_manager.cc
-  src/modules/imu_driver/imu_protocol.c
-  src/modules/imu_driver/serial_device.c
-  src/modules/imu_driver/serial_protocol.c)
+  ./src/modules/imu_driver/imu_protocol.c
+  ./src/modules/imu_driver/serial_device.c
+  ./src/modules/imu_driver/serial_protocol.c)
 
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${YAML_CPP_LIBRARIES}
                       ${OpenCV_LIBS})
