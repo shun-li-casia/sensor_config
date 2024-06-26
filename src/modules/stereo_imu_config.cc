@@ -121,7 +121,7 @@ bool StereoImu::writeVins(const std::string& path) const {
   cv::FileStorage fs(path, cv::FileStorage::WRITE);
 
   // 写入基本的整数和字符串数据
-  fs << "%YAML:1.0";
+  // fs << "%YAML:1.0";
   fs << "imu" << 1;
   fs << "num_of_cam" << 2;
   fs << "imu_topic" << imu0_.rostopic();
