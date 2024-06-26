@@ -48,7 +48,7 @@ void StereoCamConfigManager::ReadKalibr(const std::string calibn_file,
 
     // intrinsics
     conf->cam_params_[i].camera_name() = cam;
-    conf->cam_params_[i].model_type() = Camera::ModelType::PINHOLE;
+    conf->cam_params_[i].model_type() = Camera::CameraModel::PINHOLE;
     std::vector<int> resolution = n[cam]["resolution"].as<std::vector<int>>();
     conf->cam_params_[i].img_w() = resolution[0] * resize_scale_factor;
     conf->cam_params_[i].img_h() = resolution[1] * resize_scale_factor;

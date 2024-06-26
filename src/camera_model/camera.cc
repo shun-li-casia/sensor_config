@@ -16,17 +16,19 @@
 #include "sensor_config/camera_model/camera.h"
 
 namespace sensor_config {
-Camera::Parameters::Parameters(ModelType model_type)
-    : model_type_(model_type), img_w_(0), img_h_(0) {}
+Camera::Parameters::Parameters(CameraModel model_type)
+    : camera_model_(model_type), img_w_(0), img_h_(0) {}
 
-Camera::Parameters::Parameters(ModelType model_type, std::string camera_name,
+Camera::Parameters::Parameters(CameraModel model_type, std::string camera_name,
                                int img_w, int img_h)
-    : model_type_(model_type),
+    : camera_model_(model_type),
       camera_name_(camera_name),
       img_w_(img_w),
       img_h_(img_h) {}
 
-Camera::ModelType& Camera::Parameters::model_type() { return model_type_; }
+Camera::CameraModel& Camera::Parameters::camera_model() {
+  return camera_model_;
+}
 
 std::string& Camera::Parameters::camera_name() { return camera_name_; }
 
@@ -38,7 +40,9 @@ int& Camera::Parameters::img_h() { return img_h_; }
 
 std::vector<int>& Camera::Parameters::cam_overlaps() { return cam_overlaps_; }
 
-Camera::ModelType Camera::Parameters::modelType() const { return model_type_; }
+Camera::CameraModel Camera::Parameters::camera_model() const {
+  return camera_model_;
+}
 
 const std::string& Camera::Parameters::camera_name() const {
   return camera_name_;

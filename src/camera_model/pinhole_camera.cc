@@ -21,13 +21,16 @@
 namespace sensor_config {
 
 PinholeCamera::Parameters::Parameters()
-    : Camera::Parameters(Camera::ModelType::PINHOLE) {}
+    : Camera::Parameters(Camera::CameraModel::PINHOLE,
+                         Camera::DistortionModel::RADIAL_TANGENTIAL) {}
 
 PinholeCamera::Parameters::Parameters(const std::string& camera_name, int img_w,
                                       int img_h, double fx, double fy,
                                       double cx, double cy, double k1,
                                       double k2, double p1, double p2)
-    : Camera::Parameters(ModelType::PINHOLE, camera_name, img_w, img_h),
+    : Camera::Parameters(CameraModel::PINHOLE,
+                         DistortionModel::RADIAL_TANGENTIAL, camera_name, img_w,
+                         img_h),
       fx_(fx),
       fy_(fy),
       cx_(cx),
@@ -61,32 +64,34 @@ bool PinholeCamera::Parameters::readKalibrSingleCam(const std::string& path) {
     return false;
   }
 
-  std::string cam = "cam0";
   // intrinsics
-  camera_name_ = cam;
-  model_type_ = Camera::ModelType::PINHOLE;
-  std::vector<int> resolution = n[cam]["resolution"].as<std::vector<int>>();
+  camera_model_ = Camera::CameraModel::PINHOLE;
+  distortion_model_ = Camera::DistortionModel::RADIAL_TANGENTIAL;
+
+  std::vector<int> resolution =
+      n[camera_name_]["resolution"].as<std::vector<int>>();
   img_w_ = resolution[0];
   img_h_ = resolution[1];
 
   std::vector<double> distortion_coeffs =
-      n[cam]["distortion_coeffs"].as<std::vector<double>>();
+      n[camera_name_]["distortion_coeffs"].as<std::vector<double>>();
   k1_ = distortion_coeffs[0];
   k2_ = distortion_coeffs[1];
   p1_ = distortion_coeffs[2];
   p2_ = distortion_coeffs[3];
 
   std::vector<double> intrinsics =
-      n[cam]["intrinsics"].as<std::vector<double>>();
+      n[camera_name_]["intrinsics"].as<std::vector<double>>();
   fx_ = intrinsics[0];
   fy_ = intrinsics[1];
   cx_ = intrinsics[2];
   cy_ = intrinsics[3];
 
-  std::vector<int> overlap = n[cam]["cam_overlaps"].as<std::vector<int>>();
+  std::vector<int> overlap =
+      n[camera_name_]["cam_overlaps"].as<std::vector<int>>();
   cam_overlaps_ = overlap;
 
-  std::string ros_topic = n[cam]["rostopic"].as<std::string>();
+  std::string ros_topic = n[camera_name_]["rostopic"].as<std::string>();
   rostopic_ = ros_topic;
   return true;
 }
@@ -95,35 +100,34 @@ void PinholeCamera::Parameters::writeKalibrSingleCam(
     const std::string& path) const {
   YAML::Node node;
   assert(node.IsNull());
-  std::string cam_names{"cam1"};
 
   // overlap
-  node[cam_names]["cam_overlaps"] = cam_overlaps_;
-  node[cam_names]["cam_overlaps"].SetStyle(YAML::EmitterStyle::Flow);
+  node[camera_name_]["cam_overlaps"] = cam_overlaps_;
+  node[camera_name_]["cam_overlaps"].SetStyle(YAML::EmitterStyle::Flow);
 
   // camera model
-  node[cam_names]["camera_model"] = "pinhole";
+  node[camera_name_]["camera_model"] = "pinhole";
 
   // distortion_coeffs
   std::vector<double> dis = {k1_, k2_, p1_, p2_};
-  node[cam_names]["distortion_coeffs"] = dis;
-  node[cam_names]["distortion_coeffs"].SetStyle(YAML::EmitterStyle::Flow);
+  node[camera_name_]["distortion_coeffs"] = dis;
+  node[camera_name_]["distortion_coeffs"].SetStyle(YAML::EmitterStyle::Flow);
 
   // distortion_model
-  node[cam_names]["distortion_model"] = "radtan";
+  node[camera_name_]["distortion_model"] = "radtan";
 
   // intrinsics
   std::vector<double> in = {fx_, fy_, cx_, cy_};
-  node[cam_names]["intrinsics"] = in;
-  node[cam_names]["intrinsics"].SetStyle(YAML::EmitterStyle::Flow);
+  node[camera_name_]["intrinsics"] = in;
+  node[camera_name_]["intrinsics"].SetStyle(YAML::EmitterStyle::Flow);
 
   // resolution
   std::vector<int> resolution = {img_w_, img_h_};
-  node[cam_names]["resolution"] = resolution;
-  node[cam_names]["resolution"].SetStyle(YAML::EmitterStyle::Flow);
+  node[camera_name_]["resolution"] = resolution;
+  node[camera_name_]["resolution"].SetStyle(YAML::EmitterStyle::Flow);
 
   // rostopic
-  node[cam_names]["rostopic"] = rostopic_;
+  node[camera_name_]["rostopic"] = rostopic_;
 
   std::ofstream file(path);
   file.clear();
@@ -137,8 +141,10 @@ PinholeCamera::Parameters& PinholeCamera::Parameters::operator=(
     return *this;
   }
 
-  model_type_ = other.model_type_;
+  camera_model_ = other.camera_model_;
   camera_name_ = other.camera_name_;
+  cam_overlaps_ = other.cam_overlaps_;
+  rostopic_ = other.rostopic_;
   img_w_ = other.img_w_;
   img_h_ = other.img_h_;
   fx_ = other.fx_;
@@ -155,8 +161,13 @@ PinholeCamera::Parameters& PinholeCamera::Parameters::operator=(
 std::ostream& operator<<(std::ostream& out,
                          const PinholeCamera::Parameters& params) {
   out << "Camera Parameters:" << std::endl;
-  out << "    model_type "
-      << "PINHOLE" << std::endl;
+  out << "    model_type " << "PINHOLE" << std::endl;
+  std::cout << " camera overlaps [";
+  for (auto& o : params.cam_overlaps_) {
+    out << o << " ";
+  }
+  out << "]" << std::endl;
+  out << " rostopic " << params.rostopic_ << std::endl;
   out << "   camera_name " << params.camera_name_ << std::endl;
   out << "   image_width " << params.img_w_ << std::endl;
   out << "  image_height " << params.img_h_ << std::endl;

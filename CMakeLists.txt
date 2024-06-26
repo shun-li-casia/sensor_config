@@ -13,6 +13,11 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 find_package(Eigen3)
 include_directories(${EIGEN3_INCLUDE_DIR})
 
+# 添加Sophus库
+find_package(Sophus REQUIRED)
+include_directories(${Sophus_INCLUDE_DIRS})
+find_package(FMT REQUIRED)
+
 find_package(OpenCV 4 REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 message(WARNING "OpenCV_VERSION: ${OpenCV_VERSION}")
@@ -37,12 +42,13 @@ add_library(
   ./src/camera_model/pinhole_camera.cc
   ./src/modules/stereo_rectifier.cc
   ./src/modules/stereo_cam_config_manager.cc
+  ./src/modules/stereo_imu_config.cc
   ./src/modules/imu_driver/imu_protocol.c
   ./src/modules/imu_driver/serial_device.c
   ./src/modules/imu_driver/serial_protocol.c)
 
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${YAML_CPP_LIBRARIES}
-                      ${OpenCV_LIBS})
+                      ${OpenCV_LIBS} fmt::fmt ${Sophus_LIBRARIES})
 
 add_executable(open_camera_to_rosmsg src/tools/open_camera_to_rosmsg.cc)
 target_link_libraries(open_camera_to_rosmsg ${catkin_LIBRARIES} ${OpenCV_LIBS})

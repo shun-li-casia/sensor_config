@@ -25,25 +25,28 @@ class Camera {
   typedef std::shared_ptr<Camera> Ptr;
 
  public:
-  enum class ModelType {
+  enum class CameraModel {
     PINHOLE = 0,
     PINHOLE_FULL,
   };
 
+  enum class DistortionModel { RADIAL_TANGENTIAL = 0 };
+
+  // FIXME: the rostopic and overlaps!
   class Parameters {
    public:
-    Parameters(ModelType model_type);
-    Parameters(ModelType model_type, std::string camera_name, int img_w,
-               int img_h);
+    Parameters(CameraModel camera_model, DistortionModel distortion_model);
+    Parameters(CameraModel camera_model, DistortionModel distortion_model,
+               std::string camera_name, int img_w, int img_h);
 
-    ModelType& model_type();
+    CameraModel& camera_model();
     std::string& camera_name();
     std::string& rostopic();
     int& img_w();
     int& img_h();
     std::vector<int>& cam_overlaps();
 
-    ModelType modelType() const;
+    CameraModel camera_model() const;
     const std::string& camera_name() const;
     const std::string& rostopic() const;
     int img_w() const;
@@ -54,7 +57,8 @@ class Camera {
     virtual void writeKalibrSingleCam(const std::string& path) const = 0;
 
    protected:
-    ModelType model_type_;
+    CameraModel camera_model_;
+    DistortionModel distortion_model_;
     std::string camera_name_;
     int img_w_{0}, img_h_{0};
 

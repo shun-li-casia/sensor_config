@@ -18,6 +18,9 @@
 #include "sensor_config/camera_model/camera.h"
 
 namespace sensor_config {
+
+// FIXME: the constructor needs the rostopic name and the overlaps....
+
 class PinholeCamera : public Camera {
  public:
   class Parameters : public Camera::Parameters {
