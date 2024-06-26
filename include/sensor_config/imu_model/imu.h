@@ -25,11 +25,15 @@ class Imu {
   double& acc_w();
   double& gyr_n();
   double& gyr_w();
+  double& hz();
+  std::string& rostopic();
 
   double acc_n() const;
   double acc_w() const;
   double gyr_n() const;
   double gyr_w() const;
+  double hz() const;
+  std::string rostopic() const;
 
   bool readFromKalibr(const std::string& path);
   bool readFromImuUtils(const std::string& path);
@@ -39,6 +43,9 @@ class Imu {
   double acc_w_{0.0f};
   double gyr_n_{0.0f};
   double gyr_w_{0.0f};
+
+  std::string rostopic_{""};
+  double hz_{0.0f};
 };
 }  // namespace sensor_config
 
