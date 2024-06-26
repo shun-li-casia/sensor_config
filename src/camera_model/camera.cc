@@ -16,18 +16,27 @@
 #include "sensor_config/camera_model/camera.h"
 
 namespace sensor_config {
-Camera::Parameters::Parameters(CameraModel model_type)
-    : camera_model_(model_type), img_w_(0), img_h_(0) {}
+Camera::Parameters::Parameters(CameraModel camera_model,
+                               DistortionModel distortion_model)
+    : camera_model_(camera_model),
+      distortion_model_(distortion_model),
+      img_w_(0),
+      img_h_(0) {}
 
-Camera::Parameters::Parameters(CameraModel model_type, std::string camera_name,
-                               int img_w, int img_h)
-    : camera_model_(model_type),
+Camera::Parameters::Parameters(CameraModel camera_model,
+                               DistortionModel distortion_model,
+                               std::string camera_name, int img_w, int img_h)
+    : camera_model_(camera_model),
+      distortion_model_(distortion_model),
       camera_name_(camera_name),
       img_w_(img_w),
       img_h_(img_h) {}
 
 Camera::CameraModel& Camera::Parameters::camera_model() {
   return camera_model_;
+}
+Camera::DistortionModel& Camera::Parameters::distortion_model() {
+  return distortion_model_;
 }
 
 std::string& Camera::Parameters::camera_name() { return camera_name_; }
@@ -42,6 +51,9 @@ std::vector<int>& Camera::Parameters::cam_overlaps() { return cam_overlaps_; }
 
 Camera::CameraModel Camera::Parameters::camera_model() const {
   return camera_model_;
+}
+Camera::DistortionModel Camera::Parameters::distortion_model() const {
+  return distortion_model_;
 }
 
 const std::string& Camera::Parameters::camera_name() const {

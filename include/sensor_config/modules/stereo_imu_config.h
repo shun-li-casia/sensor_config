@@ -30,7 +30,7 @@ class StereoImu {
     PinholeCamera::Parameters cam_params_;
   };
 
-  bool readKalibr(const std::string& path);
+  bool readKalibr(const std::string& cam_imu_chain_path, const std::string& imu_path);
 
   bool writeVins(const std::string& path) const;
 

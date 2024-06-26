@@ -23,13 +23,25 @@
 
 namespace sensor_config {
 
-bool StereoImu::readKalibr(const std::string& path) {
-  cam0_.cam_params_.camera_name() = "cam0";
-  cam0_.cam_params_.readKalibrSingleCam(path);
-  cam1_.cam_params_.camera_name() = "cam1";
-  cam1_.cam_params_.readKalibrSingleCam(path);
+bool StereoImu::readKalibr(const std::string& cam_imu_chain_path,
+                           const std::string& imu_path) {
+  // read imu0 info
+  if (!imu0_.readFromKalibr(imu_path)) {
+    return false;
+  };
 
-  auto n = YAML::LoadFile(path);
+  // read cam0 and cam1
+  cam0_.cam_params_.camera_name() = "cam0";
+  if (!cam0_.cam_params_.readKalibrSingleCam(cam_imu_chain_path)) {
+    return false;
+  }
+
+  cam1_.cam_params_.camera_name() = "cam1";
+  if (!cam1_.cam_params_.readKalibrSingleCam(cam_imu_chain_path)) {
+    return false;
+  }
+
+  auto n = YAML::LoadFile(cam_imu_chain_path);
   if (n.IsNull()) {
     return false;
   }
@@ -93,6 +105,8 @@ void StereoImu::writeCameraCV(const CamInStereo& cam) const {
 
   // 将数据写入文件
   std::ofstream fout(cam.cam_params_.camera_name() + ".yaml");
+  fout << "%YAML:1.0" << std::endl;
+  fout << "---" << std::endl;
   fout << root;
   fout.close();
 }
@@ -104,7 +118,7 @@ bool StereoImu::writeVins(const std::string& path) const {
 
   // write the main file
   //  使用cv::FileStorage来保存数据
-  cv::FileStorage fs("vins_params.yaml", cv::FileStorage::WRITE);
+  cv::FileStorage fs(path, cv::FileStorage::WRITE);
 
   // 写入基本的整数和字符串数据
   fs << "%YAML:1.0";

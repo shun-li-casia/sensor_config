@@ -40,6 +40,7 @@ class Camera {
                std::string camera_name, int img_w, int img_h);
 
     CameraModel& camera_model();
+    DistortionModel& distortion_model();
     std::string& camera_name();
     std::string& rostopic();
     int& img_w();
@@ -47,6 +48,7 @@ class Camera {
     std::vector<int>& cam_overlaps();
 
     CameraModel camera_model() const;
+    DistortionModel distortion_model() const;
     const std::string& camera_name() const;
     const std::string& rostopic() const;
     int img_w() const;

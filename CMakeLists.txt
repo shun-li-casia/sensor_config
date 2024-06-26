@@ -67,3 +67,7 @@ target_link_libraries(open_camera_imu_to_rosmsg ${PROJECT_NAME})
 
 add_executable(preview_rosimage src/tools/preview_rosimage.cc)
 target_link_libraries(preview_rosimage ${PROJECT_NAME})
+
+add_executable(convert_kalibr_to_vins_param
+               src/tools/convert_kalibr_to_vins_param.cc)
+target_link_libraries(convert_kalibr_to_vins_param ${PROJECT_NAME})
