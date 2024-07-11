@@ -20,8 +20,6 @@
 #include <opencv2/highgui/highgui.hpp>
 
 #include "utility_tool/cmdline.h"
-#include "utility_tool/print_ctrl_macro.h"
-#include "utility_tool/pcm_debug_helper.h"
 
 void imageCallback(const sensor_msgs::ImageConstPtr& msg) {
   try {
@@ -52,11 +50,10 @@ int main(int argc, char** argv) {
   par.add<std::string>("image_topic", 'i', "image topic", true);
   par.parse_check(argc, argv);
 
-  // Initialize the ROS node
-  ros::init(argc, argv, "preview_rosimage_node");
-  ros::NodeHandle nh;
-
   std::string image_topic = par.get<std::string>("image_topic");
+  // Initialize the ROS node
+  ros::init(argc, argv, "preview_rosimage_node_"+image_topic);
+  ros::NodeHandle nh;
 
   // Create an Image Transport object
   image_transport::ImageTransport it(nh);

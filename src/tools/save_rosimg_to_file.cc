@@ -39,13 +39,13 @@ int main (int argc, char *argv[]) {
 
   cmdline::parser par;
 
-  par.add<int>("camera_id", 'i', "camera id", false, 0);
+  par.add<std::string>("image_topic", 'i', "image topic", true);
   par.parse_check(argc, argv);
-  int camera_id = par.get<int>("camera_id");
+  std::string image_topic = par.get<std::string>("image_topic");
 
   ros::init(argc, argv, "save_rosimg_to_file_node");
       ros::NodeHandle nh;
-  ros::Subscriber img_sub = nh.subscribe("image_raw_"+std::to_string(camera_id), 100, img_callback);
+  ros::Subscriber img_sub = nh.subscribe(image_topic, 100, img_callback);
 
   ros::spin();
   return 0;
