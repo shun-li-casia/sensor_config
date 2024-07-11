@@ -16,8 +16,8 @@
 #include <cstdint>
 #include <cstring>
 #include <cmath>
-#include "sensor_config/imu_driver/serial_device.h"
-#include "sensor_config/imu_driver/imu_protocol.h"
+#include "sensor_config/modules/imu_driver/serial_device.h"
+#include "sensor_config/modules/imu_driver/imu_protocol.h"
 
 #include "opencv2/imgproc.hpp"
 #include "utility_tool/cmdline.h"

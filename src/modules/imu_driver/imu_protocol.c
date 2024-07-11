@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <string.h>
-#include "sensor_config/imu_driver/imu_protocol.h"
-#include "sensor_config/imu_driver/serial_device.h"
-#include "sensor_config/imu_driver/serial_protocol.h"
+#include "sensor_config/modules/imu_driver/imu_protocol.h"
+#include "sensor_config/modules/imu_driver/serial_device.h"
+#include "sensor_config/modules/imu_driver/serial_protocol.h"
 
 int get_imu_data_start() {
   unsigned char pakage_data[BUFF_MAX_SIZE] = {0x5B, 0x01, 0x5D};

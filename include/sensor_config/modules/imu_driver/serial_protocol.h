@@ -7,7 +7,7 @@ extern "C" {
 #endif
 #endif /* __cplusplus */
 
-#include "sensor_config/imu_driver/serial_device.h"
+#include "sensor_config/modules/imu_driver/serial_device.h"
 
 #define BUFF_MAX_SIZE 1024  // 1K
 

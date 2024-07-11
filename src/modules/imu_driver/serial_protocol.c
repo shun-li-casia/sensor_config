@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <string.h>
-#include "sensor_config/imu_driver/serial_protocol.h"
+#include "sensor_config/modules/imu_driver/serial_protocol.h"
 
 static unsigned short checksum(unsigned char* data, int len) {
   int i = 0;

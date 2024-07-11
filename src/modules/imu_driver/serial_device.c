@@ -11,8 +11,8 @@
 #include <pthread.h>
 #include <signal.h>
 
-#include "sensor_config/imu_driver/serial_device.h"
-#include "sensor_config/imu_driver/serial_protocol.h"
+#include "sensor_config/modules/imu_driver/serial_device.h"
+#include "sensor_config/modules/imu_driver/serial_protocol.h"
 
 static int fd_uart = -1;
 
