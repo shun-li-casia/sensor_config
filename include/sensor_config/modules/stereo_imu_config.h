@@ -30,15 +30,17 @@ class StereoImu {
     PinholeCamera::Parameters cam_params_;
   };
 
-  bool readKalibr(const std::string& cam_imu_chain_path, const std::string& imu_path);
+  bool readKalibr(const std::string& cam_imu_chain_path,
+                  const std::string& imu_path);
 
   bool writeVins(const std::string& path) const;
 
- private:
+  // params
   CamInStereo cam0_, cam1_;
   Eigen::Matrix4d T_c1_c0_;
   Imu imu0_;
 
+ private:
   void writeCameraCV(const CamInStereo& cam) const;
 };
 }  // namespace sensor_config

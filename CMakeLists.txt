@@ -6,7 +6,7 @@ set(CMAKE_CXX_FLAGS "-std=c++11")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -g -fPIC")
 
 find_package(catkin REQUIRED COMPONENTS roscpp cv_bridge utility_tool
-                                        image_transport)
+                                        image_transport tf tf2)
 find_package(yaml-cpp REQUIRED)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
@@ -33,7 +33,10 @@ catkin_package(
   roscpp
   cv_bridge
   utility_tool
-  image_transport)
+  image_transport
+  tf
+  tf2
+  )
 
 add_library(
   ${PROJECT_NAME}
@@ -71,3 +74,7 @@ target_link_libraries(preview_rosimage ${PROJECT_NAME})
 add_executable(convert_kalibr_to_vins_param
                src/tools/convert_kalibr_to_vins_param.cc)
 target_link_libraries(convert_kalibr_to_vins_param ${PROJECT_NAME})
+
+add_executable(publish_params_tp_tf
+               src/tools/publish_params_tp_tf.cc)
+target_link_libraries(publish_params_tp_tf ${PROJECT_NAME})

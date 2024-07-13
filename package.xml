@@ -31,6 +31,8 @@
     <depend>cv_bridge</depend>
     <depend>image_transport</depend>
     <depend>utility_tool</depend>
+    <depend>tf</depend>
+    <depend>tf2</depend>
 
   <!-- The *_depend tags are used to specify dependencies -->
   <!-- Dependencies can be catkin packages or system dependencies -->
@@ -55,4 +57,3 @@
 
   </export>
 </package>
-
