@@ -47,7 +47,7 @@ int main(int argc, char** argv) {
   tf2_ros::StaticTransformBroadcaster tf_br;
   auto tp = ros::Time::now();
 
-  // T_b_c0
+  // STEP: T_b_c0
   geometry_msgs::TransformStamped trans_b_c0;
   trans_b_c0.header.stamp = tp;
   trans_b_c0.header.frame_id = "uav_" + std::to_string(uav_id) + "_b";
@@ -64,7 +64,7 @@ int main(int argc, char** argv) {
   trans_b_c0.transform.rotation.z = T_b_c0.unit_quaternion().z();
   tf_br.sendTransform(trans_b_c0);
 
-  // T_b_c1
+  // STEP: T_b_c1
   geometry_msgs::TransformStamped trans_b_c1;
   trans_b_c1.header.stamp = tp;
   trans_b_c1.header.frame_id = "uav_" + std::to_string(uav_id) + "_b";
@@ -98,8 +98,7 @@ int main(int argc, char** argv) {
     tf_br.sendTransform(trans_b_t);
   }
 
-  // STEP: publish the camera info and the transform
-  // camera 0
+  // STEP: camera 0
   ros::Publisher cam_0_info_pub = nh.advertise<sensor_msgs::CameraInfo>(
       "uav_" + std::to_string(uav_id) + "/cam_0_info", 10);
   sensor_msgs::CameraInfo cam_0_info;
@@ -134,7 +133,7 @@ int main(int argc, char** argv) {
                   1.0f,
                   0.0f};
 
-  // camera 1
+  // STEP: camera 1
   sensor_msgs::CameraInfo cam_1_info;
   ros::Publisher cam_1_info_pub = nh.advertise<sensor_msgs::CameraInfo>(
       "uav_" + std::to_string(uav_id) + "/cam_1_info", 10);
@@ -166,10 +165,7 @@ int main(int argc, char** argv) {
                   P_1(1, 0), P_1(1, 1), P_1(1, 2), P_1(1, 3),
                   P_1(2, 0), P_1(2, 1), P_1(2, 2), P_1(2, 3)};
 
-  ros::Rate publish_rate(1);
-
-  // STEP: publish the tf, T_b_c0, T_b_c1, T_b_t (only uav_id=1,2,3)
-
+  // STEP: publish the tf on the topic, T_b_c0, T_b_c1, T_b_t
   ros::Publisher T_b_c0_pub = nh.advertise<geometry_msgs::TransformStamped>(
       "uav_" + std::to_string(uav_id) + "/T_b_c_0", 10);
   ros::Publisher T_b_c1_pub = nh.advertise<geometry_msgs::TransformStamped>(
@@ -179,6 +175,8 @@ int main(int argc, char** argv) {
     T_b_t_pub = nh.advertise<geometry_msgs::TransformStamped>(
         "uav_" + std::to_string(uav_id) + "/T_b_t", 10);
   }
+
+  ros::Rate publish_rate(1);
   while (ros::ok()) {
     ros::spinOnce();
     publish_rate.sleep();
