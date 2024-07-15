@@ -65,6 +65,9 @@ target_link_libraries(save_rosimg_to_file ${catkin_LIBRARIES} ${OpenCV_LIBS})
 add_executable(undistort_img src/tools/undistort_img.cc)
 target_link_libraries(undistort_img ${PROJECT_NAME})
 
+add_executable(undistort_stereo src/tools/undistort_stereo.cc)
+target_link_libraries(undistort_stereo ${PROJECT_NAME})
+
 add_executable(open_camera_imu_to_rosmsg src/tools/open_camera_imu_to_rosmsg.cc)
 target_link_libraries(open_camera_imu_to_rosmsg ${PROJECT_NAME})
 
