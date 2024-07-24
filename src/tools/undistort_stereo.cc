@@ -122,10 +122,14 @@ int main(int argc, char** argv) {
   sensor_config::StereoCamConfig stereo_conf;
   stereo_conf_manager.ReadKalibr(par.get<std::string>("k_stereo"),
                                  &stereo_conf);
+  stereo_conf_manager.PrintKalibr(stereo_conf);
 
   Eigen::Matrix3d rect_r_rl;
   Eigen::Vector3d rect_t_rl;
-  sensor_config::PinholeCamera::Parameters l_rect_cam, r_rect_cam;
+  sensor_config::PinholeCamera::Parameters l_rect_cam =
+                                               stereo_conf.cam_params_[0],
+                                           r_rect_cam =
+                                               stereo_conf.cam_params_[1];
   sensor_config::StereoRectifier::RectStereoParam(
       stereo_conf.r_rl_, stereo_conf.t_rl_, &rect_r_rl, &rect_t_rl, &l_rect_cam,
       &r_rect_cam, &g_l_maps, &g_r_maps);

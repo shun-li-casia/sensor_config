@@ -14,6 +14,7 @@
  *******************************************************************************/
 
 #include "sensor_config/modules/stereo_cam_config_manager.h"
+#include "utility_tool/print_ctrl_macro.h"
 #include <fstream>
 #include <yaml-cpp/yaml.h>
 
@@ -135,4 +136,15 @@ void StereoCamConfigManager::WriteKalibr(const StereoCamConfig& conf,
   file << node;
   file.close();
 }
+void StereoCamConfigManager::PrintKalibr(const StereoCamConfig& conf) {
+  PCM_STREAM_INFO("r_rl: \n" << conf.r_rl_ << std::endl);
+  PCM_STREAM_INFO("t_rl: \n" << conf.t_rl_ << std::endl);
+  for (int i = 0; i < 2; ++i) {
+    PCM_STREAM_INFO("cam" << i << " T_cn_cnm1: \n"
+                          << conf.cam_params_[i] << std::endl);
+    PCM_STREAM_INFO("cam" << i << " rostopic: \n"
+                          << conf.rostopic_[i] << std::endl);
+  }
+}
+
 }  // namespace sensor_config

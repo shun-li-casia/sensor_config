@@ -17,10 +17,8 @@
 #define SENSOR_CONFIG_MODULES_STEREO_CAM_CONFIG_MANAGER_H_
 
 #include "sensor_config/camera_model/pinhole_camera.h"
-#include "utility_tool/pcm_debug_helper.h"
 
 #include <vector>
-#include <algorithm>
 #include <string>
 
 #include <Eigen/Core>
@@ -44,6 +42,9 @@ class StereoCamConfigManager {
 
   static void WriteKalibr(const StereoCamConfig& conf,
                           const std::string file_name);
+
+  static void PrintKalibr(const StereoCamConfig& conf);
+
 };
 }  // namespace sensor_config
 #endif

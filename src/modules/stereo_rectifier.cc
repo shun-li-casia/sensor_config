@@ -14,7 +14,6 @@
  *******************************************************************************/
 
 #include "sensor_config/modules/stereo_rectifier.h"
-#include "utility_tool/pcm_debug_helper.h"
 
 namespace sensor_config {
 void StereoRectifier::RectStereoParam(
@@ -61,8 +60,6 @@ void StereoRectifier::RectStereoParam(
   cv::initUndistortRectifyMap(Kr, Dr, Rr, Pr, image_size, CV_32F, map21, map22);
   *cam_r_maps = {map21, map22};
 
-  PCM_STREAM_VAR_DEBUG(Pl);
-  PCM_STREAM_VAR_DEBUG(Pr);
   cam_param_l->k1() = 0;
   cam_param_l->k2() = 0;
   cam_param_l->p1() = 0;
