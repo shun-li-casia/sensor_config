@@ -71,6 +71,9 @@ target_link_libraries(undistort_stereo ${PROJECT_NAME})
 add_executable(open_camera_imu_to_rosmsg src/tools/open_camera_imu_to_rosmsg.cc)
 target_link_libraries(open_camera_imu_to_rosmsg ${PROJECT_NAME})
 
+add_executable(open_camera_split_imu_to_rosmsg src/tools/open_camera_split_imu_to_rosmsg.cc)
+target_link_libraries(open_camera_split_imu_to_rosmsg ${PROJECT_NAME})
+
 add_executable(preview_rosimage src/tools/preview_rosimage.cc)
 target_link_libraries(preview_rosimage ${PROJECT_NAME})
 
