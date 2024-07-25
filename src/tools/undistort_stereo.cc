@@ -21,6 +21,7 @@
 #include "sensor_config/modules/stereo_rectifier.h"
 #include "sensor_msgs/CameraInfo.h"
 #include "utility_tool/cmdline.h"
+#include "utility_tool/pcm_debug_helper.h"
 
 #include <sensor_msgs/Image.h>
 #include <thread>
@@ -43,7 +44,7 @@ void remap(const sensor_msgs::ImageConstPtr& msg,
   try {
     // Convert the ROS Image message to OpenCV's Mat format
     cv_bridge::CvImagePtr cv_ptr;
-    cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
+    cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::MONO8);
     cv::Mat img = cv_ptr->image;
 
     // remap

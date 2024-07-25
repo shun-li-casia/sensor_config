@@ -1,7 +1,7 @@
 /*******************************************************************************
  *   Copyright (C) 2022 Concordia NAVlab. All rights reserved.
  *
- *   @Filename: open_camera_imu_to_rosmsg.cc
+ *   @Filename: open_camera_spilt_imu_to_rosmsg.cc
  *
  *   @Author: Ting Cai, Shun Li
  *
@@ -158,6 +158,7 @@ void ImuCallback(unsigned char* data_block, int data_block_len) {
 int main(int argc, char* argv[]) {
   cmdline::parser par;
 
+  par.add<int>("uav_id", 'u', "uav id", true, 0);
   par.add<int>("imu_uart", 'i', "imu_uart id", true, 0);
   par.add<int>("camera_id", 'c', "camera id", true, 0);
   par.parse_check(argc, argv);
@@ -181,9 +182,12 @@ int main(int argc, char* argv[]) {
     PCM_PRINT_INFO("open %s successfully!\n", uart1.c_str());
   }
 
+  int uav_id = par.get<int>("uav_id");
   int camera_id = par.get<int>("camera_id");
-  ros::Publisher image_pub = nh.advertise<sensor_msgs::Image>(
-      "hconcate_image_cam_" + std::to_string(camera_id), 1);
+  ros::Publisher l_image_pub = nh.advertise<sensor_msgs::Image>(
+      "/uav_" + std::to_string(uav_id) + "/cam_0", 1);
+  ros::Publisher r_image_pub = nh.advertise<sensor_msgs::Image>(
+      "/uav_" + std::to_string(uav_id) + "/cam_1", 1);
   g_imu_pub = nh.advertise<sensor_msgs::Imu>("imu_raw_0", 10000);
 
   cv::VideoCapture cap;
@@ -225,7 +229,7 @@ int main(int argc, char* argv[]) {
 
   while (ros::ok()) {
     timer.Start();
-    cv::Mat frame, rgb;
+    cv::Mat frame, raw_img;
     cap >> frame;
     if (frame.empty()) {
       PCM_PRINT_WARN("frame is empty!\n");
@@ -244,12 +248,20 @@ int main(int argc, char* argv[]) {
       PCM_PRINT_INFO("start IMU!\n");
     }
 
-    cv::cvtColor(frame, rgb, cv::COLOR_YUV2BGR_UYVY);
+    cv::cvtColor(frame, raw_img, cv::COLOR_YUV2GRAY_UYVY);
+
+    // split
+    int width = raw_img.cols;
+    int height = raw_img.rows;
+    cv::Rect leftRect(0, 0, width / 2, height);
+    cv::Rect rightRect(width / 2, 0, width / 2, height);
+
+    cv::Mat leftImage = raw_img(leftRect);
+    cv::Mat rightImage = raw_img(rightRect);
 
     // pub as ros msg
     std_msgs::Header header;
     header.seq = g_img_seq++;
-    header.frame_id = "camera_" + std::to_string(camera_id);
 
     // NOTE: compare the computer time and imu time
     g_imu_t_mutex.lock();
@@ -260,9 +272,18 @@ int main(int argc, char* argv[]) {
     }
     g_imu_t_mutex.unlock();
 
-    sensor_msgs::ImagePtr msg =
-        cv_bridge::CvImage(header, "bgr8", rgb).toImageMsg();
-    image_pub.publish(msg);
+    std_msgs::Header l_header = header;
+    l_header.frame_id = "uav_" + std::to_string(uav_id) + "_cam_0";
+    sensor_msgs::ImagePtr l_msg =
+        cv_bridge::CvImage(l_header, "mono8", leftImage).toImageMsg();
+    l_image_pub.publish(l_msg);
+
+    std_msgs::Header r_header = header;
+    r_header.frame_id = "uav_" + std::to_string(uav_id) + "_cam_1";
+    sensor_msgs::ImagePtr r_msg =
+        cv_bridge::CvImage(r_header, "mono8", rightImage).toImageMsg();
+    r_image_pub.publish(r_msg);
+
     PCM_PRINT_INFO(
         "image loop cost, %.2f ms(%.2f Hz), total cost: %.2f s, imu cnt: %u\n",
         timer.End(), 1000.0 / timer.End(), total.End() / 1000, g_imu_cnt);
