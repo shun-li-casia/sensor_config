@@ -37,7 +37,7 @@ sudo make -j7 install
    - `/hconcate_img_cam_<camera id>`
    - `/imu_raw_0`
 
-3. preview thw ros image msg with opencv
+3. preview the ros image msg with opencv
 
    ```bash
    rosrun sensor_config preview_rosimage -i <ros image topic>

@@ -21,8 +21,9 @@
 #include "sensor_config/modules/stereo_rectifier.h"
 #include "sensor_msgs/CameraInfo.h"
 #include "utility_tool/cmdline.h"
-#include "utility_tool/pcm_debug_helper.h"
-
+#include <message_filters/subscriber.h>
+#include <message_filters/synchronizer.h>
+#include <message_filters/sync_policies/exact_time.h>
 #include <sensor_msgs/Image.h>
 #include <thread>
 
@@ -38,13 +39,14 @@ sensor_msgs::CameraInfo g_l_rect_info, g_r_rect_info;
 // the maps
 std::pair<cv::Mat, cv::Mat> g_l_maps, g_r_maps;
 
-void remap(const sensor_msgs::ImageConstPtr& msg,
+void remap(const sensor_msgs::ImageConstPtr& img_msg,
+           sensor_msgs::CameraInfo* cam_msg,
            const std::pair<cv::Mat, cv::Mat>& maps, const std::string frame_id,
-           ros::Publisher* pub) {
+           ros::Publisher* img_pub, ros::Publisher* cam_pub) {
   try {
     // Convert the ROS Image message to OpenCV's Mat format
     cv_bridge::CvImagePtr cv_ptr;
-    cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::MONO8);
+    cv_ptr = cv_bridge::toCvCopy(img_msg, sensor_msgs::image_encodings::MONO8);
     cv::Mat img = cv_ptr->image;
 
     // remap
@@ -53,41 +55,38 @@ void remap(const sensor_msgs::ImageConstPtr& msg,
 
     // convert t
     cv_bridge::CvImage cv_img;
-    cv_img.header = msg->header;
+    cv_img.header = img_msg->header;
     cv_img.header.frame_id = frame_id;
     cv_img.encoding = sensor_msgs::image_encodings::BGR8;
     cv_img.image = rect_img;
     sensor_msgs::ImagePtr img_msg = cv_img.toImageMsg();
-    pub->publish(img_msg);
+    img_pub->publish(img_msg);
+
+    // publish the cam_info_msg
+    cam_msg->header = img_msg->header;
+    cam_pub->publish(*cam_msg);
 
   } catch (cv_bridge::Exception& e) {
     ROS_ERROR("cv_bridge exception: %s", e.what());
   }
 }
 
-void l_img_callback(const sensor_msgs::ImageConstPtr& msg) {
-  remap(msg, g_l_maps, "uav_" + std::to_string(g_uav_id) + "_rect_cam_0",
-        &g_l_rect_img_pub);
-}
-
-void r_img_callback(const sensor_msgs::ImageConstPtr& msg) {
-  remap(msg, g_r_maps, "uav_" + std::to_string(g_uav_id) + "_rect_cam_1",
-        &g_r_rect_img_pub);
-}
-
-void pub_rect_info() {
-  ros::Rate rate(1);
-  ros::Time tp = ros::Time::now();
-  while (ros::ok()) {
-    rate.sleep();
-    g_l_rect_info.header.stamp = tp;
-    g_l_rect_info_pub.publish(g_l_rect_info);
-
-    g_r_rect_info.header.stamp = tp;
-    g_r_rect_info_pub.publish(g_r_rect_info);
+void imageCallback(const sensor_msgs::ImageConstPtr& image0,
+                   const sensor_msgs::ImageConstPtr& image1) {
+  try {
+    // remap(image0, &g_l_rect_info, g_l_maps,"uav_" + std::to_string(g_uav_id)
+    // + "rect_cam_0", &g_l_rect_img_pub, &g_l_rect_info_pub);
+    std::thread t0(remap, image0, &g_l_rect_info, g_l_maps,
+                   "uav_" + std::to_string(g_uav_id) + "_rect_cam_0",
+                   &g_l_rect_img_pub, &g_l_rect_info_pub);
+    std::thread t1(remap, image1, &g_r_rect_info, g_r_maps,
+                   "uav_" + std::to_string(g_uav_id) + "_rect_cam_1",
+                   &g_r_rect_img_pub, &g_r_rect_info_pub);
+    t0.join();
+    t1.join();
+  } catch (cv_bridge::Exception& e) {
+    ROS_ERROR("cv_bridge exception: %s", e.what());
   }
-
-  return;
 }
 
 int main(int argc, char** argv) {
@@ -102,10 +101,16 @@ int main(int argc, char** argv) {
   ros::NodeHandle nh;
 
   // sub the left and right camrea
-  ros::Subscriber l_raw_sub = nh.subscribe<sensor_msgs::Image>(
-      "uav_" + std::to_string(g_uav_id) + "/cam_0", 10, l_img_callback);
-  ros::Subscriber r_raw_sub = nh.subscribe<sensor_msgs::Image>(
-      "uav_" + std::to_string(g_uav_id) + "/cam_1", 10, r_img_callback);
+  message_filters::Subscriber<sensor_msgs::Image> image_sub1(
+      nh, "uav_" + std::to_string(g_uav_id) + "/cam_0", 10);
+  message_filters::Subscriber<sensor_msgs::Image> image_sub2(
+      nh, "uav_" + std::to_string(g_uav_id) + "/cam_1", 10);
+  typedef message_filters::sync_policies::ExactTime<sensor_msgs::Image,
+                                                    sensor_msgs::Image>
+      MySyncPolicy;
+  message_filters::Synchronizer<MySyncPolicy> sync(MySyncPolicy(10), image_sub1,
+                                                   image_sub2);
+  sync.registerCallback(boost::bind(&imageCallback, _1, _2));
 
   // pub the left and right camrea and rected image and info
   g_l_rect_img_pub = nh.advertise<sensor_msgs::Image>(
@@ -195,9 +200,7 @@ int main(int argc, char** argv) {
                      P_r(1, 0), P_r(1, 1), P_r(1, 2), P_r(1, 3),
                      P_r(2, 0), P_r(2, 1), P_r(2, 2), P_r(2, 3)};
 
-  std::thread t_info(pub_rect_info);
   ros::spin();
-  t_info.join();
 
   return 0;
 }
