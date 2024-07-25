@@ -110,7 +110,8 @@ int main(int argc, char** argv) {
       MySyncPolicy;
   message_filters::Synchronizer<MySyncPolicy> sync(MySyncPolicy(10), image_sub1,
                                                    image_sub2);
-  sync.registerCallback(boost::bind(&imageCallback, _1, _2));
+  sync.registerCallback(boost::bind(&imageCallback, boost::placeholders::_1,
+                                    boost::placeholders::_2));
 
   // pub the left and right camrea and rected image and info
   g_l_rect_img_pub = nh.advertise<sensor_msgs::Image>(
