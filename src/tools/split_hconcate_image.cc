@@ -27,7 +27,7 @@ std_msgs ::Header hconcate_img_header;
 image_transport::Publisher pub_left;
 image_transport::Publisher pub_right;
 
-int camera_id;
+int uav_id, camera_id;
 int rate_cnt = 0, callback_cnt = 0;
 int img_seq = 0;
 
@@ -58,10 +58,10 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg) {
     return;
   }
   std_msgs::Header l_header = hconcate_img_header;
-  l_header.frame_id = "cam_" + std::to_string(camera_id) + "_img_0";
+  l_header.frame_id = "uav_" + std::to_string(uav_id) + "_cam_0";
   l_header.seq = img_seq;
   std_msgs::Header r_header = hconcate_img_header;
-  r_header.frame_id = "cam_" + std::to_string(camera_id) + "_img_1";
+  r_header.frame_id = "uav_" + std::to_string(uav_id) + "_cam_1";
   r_header.seq = img_seq++;
 
   sensor_msgs::ImagePtr left_msg =
@@ -75,9 +75,11 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg) {
 
 int main(int argc, char** argv) {
   cmdline::parser par;
+  par.add<int>("uav_id", 'u', "uav id", true);
   par.add<int>("camera_id", 'c', "camera id", true, 0);
   par.add<int>("publish_rate", 'r', "publish rate", true, 0);
   par.parse_check(argc, argv);
+  uav_id = par.get<int>("uav_id");
   camera_id = par.get<int>("camera_id");
 
   ros::init(argc, argv,
@@ -88,8 +90,8 @@ int main(int argc, char** argv) {
   image_transport::Subscriber sub = it.subscribe(
       "hconcate_image_cam_" + std::to_string(camera_id), 10, imageCallback);
 
-  std::string left_topic = "cam_" + std::to_string(camera_id) + "_img_0";
-  std::string right_topic = "cam_" + std::to_string(camera_id) + "_img_1";
+  std::string left_topic = "uav_" + std::to_string(uav_id) + "/_cam_0";
+  std::string right_topic = "uav_" + std::to_string(uav_id) + "/_cam_1";
 
   pub_left = it.advertise(left_topic, 10);
   pub_right = it.advertise(right_topic, 10);
