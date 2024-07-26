@@ -57,7 +57,7 @@ void remap(const sensor_msgs::ImageConstPtr& img_msg,
     cv_bridge::CvImage cv_img;
     cv_img.header = img_msg->header;
     cv_img.header.frame_id = frame_id;
-    cv_img.encoding = sensor_msgs::image_encodings::BGR8;
+    cv_img.encoding = sensor_msgs::image_encodings::MONO8;
     cv_img.image = rect_img;
     sensor_msgs::ImagePtr img_msg = cv_img.toImageMsg();
     img_pub->publish(img_msg);
@@ -77,10 +77,10 @@ void imageCallback(const sensor_msgs::ImageConstPtr& image0,
     // remap(image0, &g_l_rect_info, g_l_maps,"uav_" + std::to_string(g_uav_id)
     // + "rect_cam_0", &g_l_rect_img_pub, &g_l_rect_info_pub);
     std::thread t0(remap, image0, &g_l_rect_info, g_l_maps,
-                   "uav_" + std::to_string(g_uav_id) + "_rect_cam_0",
+                   "uav_" + std::to_string(g_uav_id),
                    &g_l_rect_img_pub, &g_l_rect_info_pub);
     std::thread t1(remap, image1, &g_r_rect_info, g_r_maps,
-                   "uav_" + std::to_string(g_uav_id) + "_rect_cam_1",
+                   "uav_" + std::to_string(g_uav_id),
                    &g_r_rect_img_pub, &g_r_rect_info_pub);
     t0.join();
     t1.join();
@@ -115,14 +115,14 @@ int main(int argc, char** argv) {
 
   // pub the left and right camrea and rected image and info
   g_l_rect_img_pub = nh.advertise<sensor_msgs::Image>(
-      "uav_" + std::to_string(g_uav_id) + "/rect/cam_0", 10);
+      "uav_" + std::to_string(g_uav_id) + "/rect/cam_0", 100);
   g_r_rect_img_pub = nh.advertise<sensor_msgs::Image>(
-      "uav_" + std::to_string(g_uav_id) + "/rect/cam_1", 10);
+      "uav_" + std::to_string(g_uav_id) + "/rect/cam_1", 100);
 
   g_l_rect_info_pub = nh.advertise<sensor_msgs::CameraInfo>(
-      "uav_" + std::to_string(g_uav_id) + "/rect/cam_0_info", 10);
+      "uav_" + std::to_string(g_uav_id) + "/rect/cam_0_info", 100);
   g_r_rect_info_pub = nh.advertise<sensor_msgs::CameraInfo>(
-      "uav_" + std::to_string(g_uav_id) + "/rect/cam_1_info", 10);
+      "uav_" + std::to_string(g_uav_id) + "/rect/cam_1_info", 100);
 
   // apply the stereo
   sensor_config::StereoCamConfigManager stereo_conf_manager;
@@ -177,12 +177,12 @@ int main(int argc, char** argv) {
   g_r_rect_info.height = r_rect_cam.img_h();
   g_r_rect_info.width = r_rect_cam.img_w();
   g_r_rect_info.distortion_model = "plumb_bob";
-  g_r_rect_info.K = {r_rect_cam.fx(),
+  g_r_rect_info.K = {l_rect_cam.fx(),
                      0.0f,
                      r_rect_cam.cx(),
                      0.0f,
-                     r_rect_cam.fy(),
-                     r_rect_cam.cy(),
+                     l_rect_cam.fy(),
+                     l_rect_cam.cy(),
                      0.0f,
                      0.0f,
                      1.0f};
@@ -197,9 +197,9 @@ int main(int argc, char** argv) {
       g_r_rect_info.K[6], g_r_rect_info.K[7], g_r_rect_info.K[8];
 
   Eigen::Matrix<double, 3, 4> P_r = K_r * T_rl;
-  g_r_rect_info.P = {P_r(0, 0), P_r(0, 1), P_r(0, 2), P_r(0, 3),
-                     P_r(1, 0), P_r(1, 1), P_r(1, 2), P_r(1, 3),
-                     P_r(2, 0), P_r(2, 1), P_r(2, 2), P_r(2, 3)};
+  g_r_rect_info.P = {K_r(0, 0), K_r(0, 1), K_r(0, 2), P_r(0, 3),
+                     K_r(1, 0), K_r(1, 1), K_r(1, 2), P_r(1, 3),
+                     K_r(2, 0), K_r(2, 1), K_r(2, 2), P_r(2, 3)};
 
   ros::spin();
 
