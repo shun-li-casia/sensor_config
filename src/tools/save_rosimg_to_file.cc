@@ -17,6 +17,7 @@
 #include "opencv2/imgcodecs.hpp"
 #include "opencv2/opencv.hpp"
 #include "utility_tool/pcm_debug_helper.h"
+#include "utility_tool/system_lib.h"
 #include "utility_tool/cmdline.h"
 
 #include <ros/init.h>
@@ -32,19 +33,19 @@ void img_callback(const sensor_msgs::Image::ConstPtr& img_msg) {
   cv::waitKey(1);
 
   std::string cur_t = std::to_string(img_msg->header.stamp.toNSec());
-  cv::imwrite(cur_t+".png", rgb);
+  cv::imwrite(cur_t + ".png", rgb);
 }
 
-int main (int argc, char *argv[]) {
-
+int main(int argc, char* argv[]) {
   cmdline::parser par;
 
   par.add<std::string>("image_topic", 'i', "image topic", true);
   par.parse_check(argc, argv);
   std::string image_topic = par.get<std::string>("image_topic");
 
-  ros::init(argc, argv, "save_rosimg_to_file_node");
-      ros::NodeHandle nh;
+  std::string t = utility_tool::GetCurLocalTimeStr("%Y%m%d%H%M%S");
+  ros::init(argc, argv, "save_rosimg_to_file_node_" + t);
+  ros::NodeHandle nh;
   ros::Subscriber img_sub = nh.subscribe(image_topic, 100, img_callback);
 
   ros::spin();
