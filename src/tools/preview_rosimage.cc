@@ -20,6 +20,7 @@
 #include <opencv2/highgui/highgui.hpp>
 
 #include "utility_tool/cmdline.h"
+#include "utility_tool/system_lib.h"
 
 void imageCallback(const sensor_msgs::ImageConstPtr& msg) {
   try {
@@ -45,22 +46,21 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg) {
 }
 
 int main(int argc, char** argv) {
-
   cmdline::parser par;
   par.add<std::string>("image_topic", 'i', "image topic", true);
   par.parse_check(argc, argv);
 
   std::string image_topic = par.get<std::string>("image_topic");
   // Initialize the ROS node
-  ros::init(argc, argv, "preview_rosimage_node_"+image_topic);
+  std::string t = utility_tool::GetCurLocalTimeStr("%Y%m%d%H%M%S");
+  ros::init(argc, argv, "preview_rosimage_node_" + t);
   ros::NodeHandle nh;
 
   // Create an Image Transport object
   image_transport::ImageTransport it(nh);
 
   // Subscribe to the image topic, e.g., "/camera/image_raw"; adjust as needed
-  image_transport::Subscriber sub =
-      it.subscribe(image_topic, 1, imageCallback);
+  image_transport::Subscriber sub = it.subscribe(image_topic, 1, imageCallback);
 
   // Spin to start the ROS event processing loop
   ros::spin();
