@@ -38,22 +38,22 @@ bool Imu::readFromKalibr(const std::string& path) {
     return false;
   }
 
-  double acc_n = n["accelerometer_noise_density"].as<double>();
+  double acc_n = n["imu0"]["accelerometer_noise_density"].as<double>();
   acc_n_ = acc_n;
 
-  double acc_w = n["accelerometer_random_walk"].as<double>();
+  double acc_w = n["imu0"]["accelerometer_random_walk"].as<double>();
   acc_w_ = acc_w;
 
-  double gyr_n = n["gyroscope_noise_density"].as<double>();
+  double gyr_n = n["imu0"]["gyroscope_noise_density"].as<double>();
   gyr_n_ = gyr_n;
 
-  double gyr_w = n["gyroscope_random_walk"].as<double>();
+  double gyr_w = n["imu0"]["gyroscope_random_walk"].as<double>();
   gyr_w_ = gyr_w;
 
-  std::string rostopic = n["rostopic"].as<std::string>();
+  std::string rostopic = n["imu0"]["rostopic"].as<std::string>();
   rostopic_ = rostopic;
 
-  double hz = n["update_rate"].as<double>();
+  double hz = n["imu0"]["update_rate"].as<double>();
   hz_ = hz;
 
   return true;
