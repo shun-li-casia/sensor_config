@@ -188,7 +188,7 @@ int main(int argc, char* argv[]) {
       "/uav_" + std::to_string(uav_id) + "/cam_0", 1);
   ros::Publisher r_image_pub = nh.advertise<sensor_msgs::Image>(
       "/uav_" + std::to_string(uav_id) + "/cam_1", 1);
-  g_imu_pub = nh.advertise<sensor_msgs::Imu>("imu_raw_0", 10000);
+  g_imu_pub = nh.advertise<sensor_msgs::Imu>("/uav_"+std::to_string(uav_id)+"/imu_raw_0", 10000);
 
   cv::VideoCapture cap;
 

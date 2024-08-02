@@ -22,9 +22,6 @@
 #include <tf2_ros/static_transform_broadcaster.h>
 
 int main(int argc, char** argv) {
-  ros::init(argc, argv, "publish_params_tp_tf_node");
-  ros::NodeHandle nh;
-
   cmdline::parser par;
   par.add<int>("uav_id", 0, "uav id", true);
   par.add("has_tag", 0, "if the uav-<uav-id> has an apriltag on it");
@@ -39,6 +36,9 @@ int main(int argc, char** argv) {
   const std::string t_b_file = par.get<std::string>("t_b_file");
   const std::string imu_file = par.get<std::string>("k_imu");
   const std::string cam_imu_file = par.get<std::string>("k_cam_imu");
+
+  ros::init(argc, argv, "uav_" + std::to_string(uav_id) + "publish_params_tp_tf_node");
+  ros::NodeHandle nh;
 
   sensor_config::StereoImu stereo_imu;
   stereo_imu.readKalibr(cam_imu_file, imu_file);
