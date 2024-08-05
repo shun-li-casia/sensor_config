@@ -38,7 +38,7 @@ int main(int argc, char** argv) {
   const std::string cam_imu_file = par.get<std::string>("k_cam_imu");
 
   ros::init(argc, argv, "publish_params_tp_tf_node");
-  ros::NodeHandle nh("~");
+  ros::NodeHandle nh;
 
   sensor_config::StereoImu stereo_imu;
   stereo_imu.readKalibr(cam_imu_file, imu_file);

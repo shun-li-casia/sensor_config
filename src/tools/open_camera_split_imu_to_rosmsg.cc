@@ -164,7 +164,7 @@ int main(int argc, char* argv[]) {
   par.parse_check(argc, argv);
 
   ros::init(argc, argv, "open_camera_imu_to_rosmsg_node");
-  ros::NodeHandle nh("~");
+  ros::NodeHandle nh;
 
   // init imu
   std::string uart1 = "/dev/ttyUSB" + std::to_string(par.get<int>("imu_uart"));
