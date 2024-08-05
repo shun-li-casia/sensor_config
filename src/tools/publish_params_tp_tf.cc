@@ -24,7 +24,7 @@
 int main(int argc, char** argv) {
   cmdline::parser par;
   par.add<int>("uav_id", 0, "uav id", true);
-  par.add("has_tag", 0, "if the uav-<uav-id> has an apriltag on it");
+  par.add<int>("has_tag", 0, "if the uav-<uav-id> has an apriltag on it", true);
   par.add<std::string>("t_b_file", 0,
                        "the transformation between the tag and the body", true);
   par.add<std::string>("k_imu", 0, "kalibr imu file", true);
@@ -32,13 +32,13 @@ int main(int argc, char** argv) {
   par.parse_check(argc, argv);
 
   const int uav_id = par.get<int>("uav_id");
-  const bool has_tag = par.exist("has_tag");
+  const bool has_tag = par.get<int>("has_tag") == 1;
   const std::string t_b_file = par.get<std::string>("t_b_file");
   const std::string imu_file = par.get<std::string>("k_imu");
   const std::string cam_imu_file = par.get<std::string>("k_cam_imu");
 
-  ros::init(argc, argv, "uav_" + std::to_string(uav_id) + "publish_params_tp_tf_node");
-  ros::NodeHandle nh;
+  ros::init(argc, argv, "publish_params_tp_tf_node");
+  ros::NodeHandle nh("~");
 
   sensor_config::StereoImu stereo_imu;
   stereo_imu.readKalibr(cam_imu_file, imu_file);
@@ -100,7 +100,7 @@ int main(int argc, char** argv) {
 
   // STEP: camera 0
   ros::Publisher cam_0_info_pub = nh.advertise<sensor_msgs::CameraInfo>(
-      "uav_" + std::to_string(uav_id) + "/cam_0_info", 10);
+      "cam_0_info", 10);
   sensor_msgs::CameraInfo cam_0_info;
   cam_0_info.header.frame_id = "uav_" + std::to_string(uav_id) + "_cam_0";
   cam_0_info.width = stereo_imu.cam0_.cam_params_.img_w();
@@ -136,7 +136,7 @@ int main(int argc, char** argv) {
   // STEP: camera 1
   sensor_msgs::CameraInfo cam_1_info;
   ros::Publisher cam_1_info_pub = nh.advertise<sensor_msgs::CameraInfo>(
-      "uav_" + std::to_string(uav_id) + "/cam_1_info", 10);
+      "cam_1_info", 10);
   cam_1_info.header.frame_id = "uav_" + std::to_string(uav_id) + "_cam_1";
   cam_1_info.width = stereo_imu.cam1_.cam_params_.img_w();
   cam_1_info.height = stereo_imu.cam1_.cam_params_.img_h();
@@ -167,13 +167,13 @@ int main(int argc, char** argv) {
 
   // STEP: publish the tf on the topic, T_b_c0, T_b_c1, T_b_t
   ros::Publisher T_b_c0_pub = nh.advertise<geometry_msgs::TransformStamped>(
-      "uav_" + std::to_string(uav_id) + "/T_b_c_0", 10);
+      "T_b_c_0", 10);
   ros::Publisher T_b_c1_pub = nh.advertise<geometry_msgs::TransformStamped>(
-      "uav_" + std::to_string(uav_id) + "/T_b_c_1", 10);
+      "T_b_c_1", 10);
   ros::Publisher T_b_t_pub;
   if (has_tag) {
     T_b_t_pub = nh.advertise<geometry_msgs::TransformStamped>(
-        "uav_" + std::to_string(uav_id) + "/T_b_t", 10);
+        "T_b_t", 10);
   }
 
   ros::Rate publish_rate(1);

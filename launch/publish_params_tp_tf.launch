@@ -1,0 +1,9 @@
+<launch>
+<arg name="uav_id" default="0" />
+<arg name="has_tag" default="0" />
+<arg name="t_b_file" default="" />
+<arg name="k_imu" default="" />
+<arg name="k_cam_imu" default="" />
+<node pkg="sensor_config" name="publish_params_tp_tf_$(arg uav_id)" type="publish_params_tp_tf" output="screen" ns="uav_$(arg uav_id)" args="--uav_id=$(arg uav_id) --has_tag=$(arg has_tag) --t_b_file=$(arg t_b_file) --k_imu=$(arg k_imu) --k_cam_imu=$(arg k_cam_imu)"/>
+</launch>
+
