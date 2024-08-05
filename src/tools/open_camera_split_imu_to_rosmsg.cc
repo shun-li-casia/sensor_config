@@ -164,7 +164,7 @@ int main(int argc, char* argv[]) {
   par.parse_check(argc, argv);
 
   ros::init(argc, argv, "open_camera_imu_to_rosmsg_node");
-  ros::NodeHandle nh;
+  ros::NodeHandle nh("~");
 
   // init imu
   std::string uart1 = "/dev/ttyUSB" + std::to_string(par.get<int>("imu_uart"));
@@ -185,10 +185,10 @@ int main(int argc, char* argv[]) {
   int uav_id = par.get<int>("uav_id");
   int camera_id = par.get<int>("camera_id");
   ros::Publisher l_image_pub = nh.advertise<sensor_msgs::Image>(
-      "/uav_" + std::to_string(uav_id) + "/cam_0", 1);
+      "cam_0", 1);
   ros::Publisher r_image_pub = nh.advertise<sensor_msgs::Image>(
-      "/uav_" + std::to_string(uav_id) + "/cam_1", 1);
-  g_imu_pub = nh.advertise<sensor_msgs::Imu>("/uav_"+std::to_string(uav_id)+"/imu_raw_0", 10000);
+      "cam_1", 1);
+  g_imu_pub = nh.advertise<sensor_msgs::Imu>("imu_raw_0", 10000);
 
   cv::VideoCapture cap;
 

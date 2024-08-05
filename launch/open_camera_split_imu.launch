@@ -1,0 +1,6 @@
+<launch>
+<arg name="uav_id" default="0" />
+<arg name="imu_uart" default="0" />
+<arg name="camera_id" default="0" />
+<node pkg="sensor_config" name="open_camera_split_imu_to_rosmsg_$(arg uav_id)" type="open_camera_split_imu_to_rosmsg" output="screen" args="-u $(arg uav_id) -i $(arg imu_uart) -c $(arg camera_id)" />
+</launch>
