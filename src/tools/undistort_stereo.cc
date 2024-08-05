@@ -77,11 +77,11 @@ void imageCallback(const sensor_msgs::ImageConstPtr& image0,
     // remap(image0, &g_l_rect_info, g_l_maps,"uav_" + std::to_string(g_uav_id)
     // + "rect_cam_0", &g_l_rect_img_pub, &g_l_rect_info_pub);
     std::thread t0(remap, image0, &g_l_rect_info, g_l_maps,
-                   "uav_" + std::to_string(g_uav_id),
-                   &g_l_rect_img_pub, &g_l_rect_info_pub);
+                   "uav_" + std::to_string(g_uav_id), &g_l_rect_img_pub,
+                   &g_l_rect_info_pub);
     std::thread t1(remap, image1, &g_r_rect_info, g_r_maps,
-                   "uav_" + std::to_string(g_uav_id),
-                   &g_r_rect_img_pub, &g_r_rect_info_pub);
+                   "uav_" + std::to_string(g_uav_id), &g_r_rect_img_pub,
+                   &g_r_rect_info_pub);
     t0.join();
     t1.join();
   } catch (cv_bridge::Exception& e) {
@@ -101,10 +101,8 @@ int main(int argc, char** argv) {
   ros::NodeHandle nh;
 
   // sub the left and right camrea
-  message_filters::Subscriber<sensor_msgs::Image> image_sub1(
-      nh, "uav_" + std::to_string(g_uav_id) + "/cam_0", 10);
-  message_filters::Subscriber<sensor_msgs::Image> image_sub2(
-      nh, "uav_" + std::to_string(g_uav_id) + "/cam_1", 10);
+  message_filters::Subscriber<sensor_msgs::Image> image_sub1(nh, "cam_0", 10);
+  message_filters::Subscriber<sensor_msgs::Image> image_sub2(nh, "cam_1", 10);
   typedef message_filters::sync_policies::ExactTime<sensor_msgs::Image,
                                                     sensor_msgs::Image>
       MySyncPolicy;
@@ -114,15 +112,13 @@ int main(int argc, char** argv) {
                                     boost::placeholders::_2));
 
   // pub the left and right camrea and rected image and info
-  g_l_rect_img_pub = nh.advertise<sensor_msgs::Image>(
-      "uav_" + std::to_string(g_uav_id) + "/rect/cam_0", 100);
-  g_r_rect_img_pub = nh.advertise<sensor_msgs::Image>(
-      "uav_" + std::to_string(g_uav_id) + "/rect/cam_1", 100);
+  g_l_rect_img_pub = nh.advertise<sensor_msgs::Image>("rect/cam_0", 100);
+  g_r_rect_img_pub = nh.advertise<sensor_msgs::Image>("rect/cam_1", 100);
 
-  g_l_rect_info_pub = nh.advertise<sensor_msgs::CameraInfo>(
-      "uav_" + std::to_string(g_uav_id) + "/rect/cam_0_info", 100);
-  g_r_rect_info_pub = nh.advertise<sensor_msgs::CameraInfo>(
-      "uav_" + std::to_string(g_uav_id) + "/rect/cam_1_info", 100);
+  g_l_rect_info_pub =
+      nh.advertise<sensor_msgs::CameraInfo>("rect/cam_0_info", 100);
+  g_r_rect_info_pub =
+      nh.advertise<sensor_msgs::CameraInfo>("rect/cam_1_info", 100);
 
   // apply the stereo
   sensor_config::StereoCamConfigManager stereo_conf_manager;
