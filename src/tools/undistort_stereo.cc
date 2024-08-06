@@ -198,7 +198,7 @@ int main(int argc, char** argv) {
                      K_r(1, 0), K_r(1, 1), K_r(1, 2), P_r(1, 3),
                      K_r(2, 0), K_r(2, 1), K_r(2, 2), P_r(2, 3)};
 
-  ros::Rate rate(par.get<int>("publish_rate"));
+  ros::Rate rate(par.get<int>("pub_rate"));
   while (ros::ok()) {
     ros::spinOnce();
     rate.sleep();
