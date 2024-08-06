@@ -14,6 +14,7 @@
  *******************************************************************************/
 
 #include "sensor_config/modules/stereo_imu_config.h"
+#include "sensor_config/apriltag_model/tag_extrin_model.h"
 #include "sensor_msgs/CameraInfo.h"
 #include "utility_tool/cmdline.h"
 
@@ -24,7 +25,6 @@
 int main(int argc, char** argv) {
   cmdline::parser par;
   par.add<int>("uav_id", 0, "uav id", true);
-  par.add<int>("has_tag", 0, "if the uav-<uav-id> has an apriltag on it", true);
   par.add<std::string>("t_b_file", 0,
                        "the transformation between the tag and the body", true);
   par.add<std::string>("k_imu", 0, "kalibr imu file", true);
@@ -32,10 +32,12 @@ int main(int argc, char** argv) {
   par.parse_check(argc, argv);
 
   const int uav_id = par.get<int>("uav_id");
-  const bool has_tag = par.get<int>("has_tag") == 1;
-  const std::string t_b_file = par.get<std::string>("t_b_file");
   const std::string imu_file = par.get<std::string>("k_imu");
   const std::string cam_imu_file = par.get<std::string>("k_cam_imu");
+
+  const bool has_tag = par.exist("t_b_file");
+  std::string t_b_t_file = "";
+  if (has_tag) t_b_t_file = par.get<std::string>("t_b_file");
 
   ros::init(argc, argv, "publish_params_tp_tf_node");
   ros::NodeHandle nh;
@@ -81,26 +83,26 @@ int main(int argc, char** argv) {
   trans_b_c1.transform.rotation.z = T_b_c1.unit_quaternion().z();
   tf_br.sendTransform(trans_b_c1);
 
-  // TODO: T_b_t
+  // STEP: T_b_t
   geometry_msgs::TransformStamped trans_b_t;
   if (has_tag) {
-    trans_b_t.header.stamp = tp;
-    trans_b_t.header.frame_id = "uav_" + std::to_string(uav_id) + "_b";
-    trans_b_t.child_frame_id = "uav_" + std::to_string(uav_id) + "_tag";
+    TagExtrinModel tag_extrin;
+    if (!tag_extrin.readTagExtrin(t_b_t_file)) {
+      ROS_ERROR("read tag extrin error");
+      return -1;
+    } else {
+      trans_b_t = tag_extrin.T_b_t_;
+      trans_b_t.header.stamp = tp;
+      trans_b_t.header.frame_id = "uav_" + std::to_string(uav_id) + "_b";
+      trans_b_t.child_frame_id = "uav_" + std::to_string(uav_id) + "_tag";
 
-    trans_b_t.transform.translation.x = 0.0;
-    trans_b_t.transform.translation.y = 0.0;
-    trans_b_t.transform.translation.z = 0.0;
-    trans_b_t.transform.rotation.w = 1.0;
-    trans_b_t.transform.rotation.x = 0.0;
-    trans_b_t.transform.rotation.y = 0.0;
-    trans_b_t.transform.rotation.z = 0.0;
-    tf_br.sendTransform(trans_b_t);
+      tf_br.sendTransform(trans_b_t);
+    }
   }
 
   // STEP: camera 0
-  ros::Publisher cam_0_info_pub = nh.advertise<sensor_msgs::CameraInfo>(
-      "cam_0_info", 10);
+  ros::Publisher cam_0_info_pub =
+      nh.advertise<sensor_msgs::CameraInfo>("cam_0_info", 10);
   sensor_msgs::CameraInfo cam_0_info;
   cam_0_info.header.frame_id = "uav_" + std::to_string(uav_id) + "_cam_0";
   cam_0_info.width = stereo_imu.cam0_.cam_params_.img_w();
@@ -135,8 +137,8 @@ int main(int argc, char** argv) {
 
   // STEP: camera 1
   sensor_msgs::CameraInfo cam_1_info;
-  ros::Publisher cam_1_info_pub = nh.advertise<sensor_msgs::CameraInfo>(
-      "cam_1_info", 10);
+  ros::Publisher cam_1_info_pub =
+      nh.advertise<sensor_msgs::CameraInfo>("cam_1_info", 10);
   cam_1_info.header.frame_id = "uav_" + std::to_string(uav_id) + "_cam_1";
   cam_1_info.width = stereo_imu.cam1_.cam_params_.img_w();
   cam_1_info.height = stereo_imu.cam1_.cam_params_.img_h();
@@ -166,14 +168,13 @@ int main(int argc, char** argv) {
                   P_1(2, 0), P_1(2, 1), P_1(2, 2), P_1(2, 3)};
 
   // STEP: publish the tf on the topic, T_b_c0, T_b_c1, T_b_t
-  ros::Publisher T_b_c0_pub = nh.advertise<geometry_msgs::TransformStamped>(
-      "T_b_c_0", 10);
-  ros::Publisher T_b_c1_pub = nh.advertise<geometry_msgs::TransformStamped>(
-      "T_b_c_1", 10);
+  ros::Publisher T_b_c0_pub =
+      nh.advertise<geometry_msgs::TransformStamped>("T_b_c_0", 10);
+  ros::Publisher T_b_c1_pub =
+      nh.advertise<geometry_msgs::TransformStamped>("T_b_c_1", 10);
   ros::Publisher T_b_t_pub;
   if (has_tag) {
-    T_b_t_pub = nh.advertise<geometry_msgs::TransformStamped>(
-        "T_b_t", 10);
+    T_b_t_pub = nh.advertise<geometry_msgs::TransformStamped>("T_b_t", 10);
   }
 
   ros::Rate publish_rate(1);
