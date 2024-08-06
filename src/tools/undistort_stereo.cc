@@ -93,6 +93,7 @@ int main(int argc, char** argv) {
   cmdline::parser par;
   par.add<int>("uav_id", 0, "uav id", true, 0);
   par.add<std::string>("k_stereo", 0, "kalibr stereo file", true);
+  par.add<int>("pub_rate", 0, "publish rate", true, 0);
   par.parse_check(argc, argv);
   g_uav_id = par.get<int>("uav_id");
 
@@ -197,7 +198,11 @@ int main(int argc, char** argv) {
                      K_r(1, 0), K_r(1, 1), K_r(1, 2), P_r(1, 3),
                      K_r(2, 0), K_r(2, 1), K_r(2, 2), P_r(2, 3)};
 
-  ros::spin();
+  ros::Rate rate(par.get<int>("publish_rate"));
+  while (ros::ok()) {
+    ros::spinOnce();
+    rate.sleep();
+  }
 
   return 0;
 }

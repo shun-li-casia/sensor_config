@@ -1,5 +1,6 @@
 <launch>
 <arg name="uav_id" default="0" />
+<arg name="pub_rate" default="5" />
 <arg name="k_stereo" default="/home/ls/stereo_imu2-camchain-imucam.yaml" />
-<node pkg="sensor_config" name="undistort_stereo_$(arg uav_id)" type="undistort_stereo" output="screen" ns="uav_$(arg uav_id)" args="--uav_id=$(arg uav_id) --k_stereo=$(arg k_stereo)"/>
+<node pkg="sensor_config" name="undistort_stereo_$(arg uav_id)" type="undistort_stereo" output="screen" ns="uav_$(arg uav_id)" args="--uav_id=$(arg uav_id) --pub_rate=$(arg pub_rate) --k_stereo=$(arg k_stereo)"/>
 </launch>
