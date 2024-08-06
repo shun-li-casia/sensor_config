@@ -34,15 +34,15 @@ class TagExtrinModel {
     T_b_t_.header.frame_id = n["header"]["frame_id"].as<std::string>();
     T_b_t_.child_frame_id = n["child_frame_id"].as<std::string>();
     T_b_t_.transform.translation.x =
-        n["transform"]["translation"][0].as<double>();
+        n["transform"]["translation"]["x"].as<double>();
     T_b_t_.transform.translation.y =
-        n["transform"]["translation"][1].as<double>();
+        n["transform"]["translation"]["y"].as<double>();
     T_b_t_.transform.translation.z =
-        n["transform"]["translation"][2].as<double>();
-    T_b_t_.transform.rotation.x = n["transform"]["rotation"][0].as<double>();
-    T_b_t_.transform.rotation.y = n["transform"]["rotation"][1].as<double>();
-    T_b_t_.transform.rotation.z = n["transform"]["rotation"][2].as<double>();
-    T_b_t_.transform.rotation.w = n["transform"]["rotation"][3].as<double>();
+        n["transform"]["translation"]["z"].as<double>();
+    T_b_t_.transform.rotation.x = n["transform"]["rotation"]["x"].as<double>();
+    T_b_t_.transform.rotation.y = n["transform"]["rotation"]["y"].as<double>();
+    T_b_t_.transform.rotation.z = n["transform"]["rotation"]["z"].as<double>();
+    T_b_t_.transform.rotation.w = n["transform"]["rotation"]["w"].as<double>();
 
     return true;
   }
