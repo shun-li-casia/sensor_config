@@ -35,9 +35,14 @@ int main(int argc, char** argv) {
   const std::string imu_file = par.get<std::string>("k_imu");
   const std::string cam_imu_file = par.get<std::string>("k_cam_imu");
 
-  const bool has_tag = par.exist("t_b_file");
+  bool has_tag = par.exist("t_b_file");
   std::string t_b_t_file = "";
-  if (has_tag) t_b_t_file = par.get<std::string>("t_b_file");
+  if (has_tag) {
+    t_b_t_file = par.get<std::string>("t_b_file");
+    if (t_b_t_file == "") {
+      has_tag = false;
+    }
+  }
 
   ros::init(argc, argv, "publish_params_tp_tf_node");
   ros::NodeHandle nh;
