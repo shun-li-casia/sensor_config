@@ -62,6 +62,8 @@ int main(int argc, char** argv) {
 
   Sophus::SE3d T_c0_b(stereo_imu.cam0_.Tci_);
   Sophus::SE3d T_b_c0 = T_c0_b.inverse();
+  std::cout << "T_c0_b:\n" << T_c0_b.matrix() << std::endl;
+  std::cout << "T_b_c0:\n" << T_b_c0.matrix() << std::endl;
   trans_b_c0.transform.translation.x = T_b_c0.translation().x();
   trans_b_c0.transform.translation.y = T_b_c0.translation().y();
   trans_b_c0.transform.translation.z = T_b_c0.translation().z();
@@ -69,6 +71,7 @@ int main(int argc, char** argv) {
   trans_b_c0.transform.rotation.x = T_b_c0.unit_quaternion().x();
   trans_b_c0.transform.rotation.y = T_b_c0.unit_quaternion().y();
   trans_b_c0.transform.rotation.z = T_b_c0.unit_quaternion().z();
+
   tf_br.sendTransform(trans_b_c0);
 
   // STEP: T_b_c1
