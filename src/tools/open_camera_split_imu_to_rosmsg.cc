@@ -167,7 +167,7 @@ int main(int argc, char* argv[]) {
   ros::NodeHandle nh;
 
   // init imu
-  std::string uart1 = "/dev/ttyUSB" + std::to_string(par.get<int>("imu_uart"));
+  std::string uart1 = "/dev/ttyUSBIMU";
   if (Set_Serial_Parse_Callback(ImuCallback) < 0) {
     PCM_PRINT_ERROR("set imu callback failed!\n");
     return -1;
