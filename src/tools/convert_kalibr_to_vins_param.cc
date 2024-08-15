@@ -18,6 +18,7 @@
 
 int main(int argc, char* argv[]) {
   cmdline::parser par;
+  par.add<int>("uav_id", 0, "uav id", true);
   par.add<std::string>("k_imu", 0, "kalibr imu file", true);
   par.add<std::string>("k_cam_imu", 0, "kalibr camera imu file", true);
   par.parse_check(argc, argv);
@@ -27,5 +28,7 @@ int main(int argc, char* argv[]) {
 
   sensor_config::StereoImu s;
   s.readKalibr(k_cam_imu, k_imu);
-  s.writeVins("vins_params.yaml");
+  s.writeVins("vins_params.yaml", par.get<int>("uav_id"));
+
+  return 0;
 }

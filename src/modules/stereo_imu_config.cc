@@ -111,7 +111,7 @@ void StereoImu::writeCameraCV(const CamInStereo& cam) const {
   fout.close();
 }
 
-bool StereoImu::writeVins(const std::string& path) const {
+bool StereoImu::writeVins(const std::string& path, const int uav_id) const {
   // wirte the camera file
   writeCameraCV(cam0_);
   writeCameraCV(cam1_);
@@ -122,6 +122,7 @@ bool StereoImu::writeVins(const std::string& path) const {
 
   // 写入基本的整数和字符串数据
   // fs << "%YAML:1.0";
+  fs << "uav_id" << uav_id;
   fs << "imu" << 1;
   fs << "num_of_cam" << 2;
   fs << "imu_topic" << imu0_.rostopic();
