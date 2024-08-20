@@ -28,6 +28,7 @@
 #include <thread>
 
 int g_uav_id = -1;
+int g_pub_rate = 25;
 
 // image
 ros::Publisher g_l_rect_img_pub, g_r_rect_img_pub;
@@ -71,8 +72,12 @@ void remap(const sensor_msgs::ImageConstPtr& img_msg,
   }
 }
 
+int g_pub_cnt = 0;
 void imageCallback(const sensor_msgs::ImageConstPtr& image0,
                    const sensor_msgs::ImageConstPtr& image1) {
+  if (++g_pub_cnt != g_pub_rate) return;
+
+  g_pub_cnt = 0;
   try {
     // remap(image0, &g_l_rect_info, g_l_maps,"uav_" + std::to_string(g_uav_id)
     // + "rect_cam_0", &g_l_rect_img_pub, &g_l_rect_info_pub);
@@ -96,6 +101,7 @@ int main(int argc, char** argv) {
   par.add<int>("pub_rate", 0, "publish rate", true, 0);
   par.parse_check(argc, argv);
   g_uav_id = par.get<int>("uav_id");
+  g_pub_rate = par.get<int>("pub_rate");
 
   ros::init(argc, argv,
             "undistort_stereo_node_uav_" + std::to_string(g_uav_id));
@@ -198,11 +204,7 @@ int main(int argc, char** argv) {
                      K_r(1, 0), K_r(1, 1), K_r(1, 2), P_r(1, 3),
                      K_r(2, 0), K_r(2, 1), K_r(2, 2), P_r(2, 3)};
 
-  ros::Rate rate(par.get<int>("pub_rate"));
-  while (ros::ok()) {
-    ros::spinOnce();
-    rate.sleep();
-  }
+  ros::spin();
 
   return 0;
 }
