@@ -1,8 +1,8 @@
 <launch>
 <arg name="uav_id" default="0" />
-<arg name="t_b_file" default="/home/ls/transform_data.yaml" />
-<arg name="k_imu" default="/home/ls/uav_0-imu.yaml" />
-<arg name="k_cam_imu" default="/home/ls/uav_0-camchain-imucam.yaml" />
+<arg name="t_b_file" default="$(find app_libs)/config/uav_$(arg uav_id)_transform_data.yaml" />
+<arg name="k_imu" default="$(find app_libs)/config/uav_$(arg uav_id)-imu.yaml" />
+<arg name="k_cam_imu" default="$(find app_libs)/config/uav_$(arg uav_id)-camchain-imucam.yaml" />
 <node pkg="sensor_config" name="publish_params_tp_tf_$(arg uav_id)" type="publish_params_tp_tf" output="screen" ns="uav_$(arg uav_id)" args="--uav_id=$(arg uav_id) --t_b_file=$(arg t_b_file) --k_imu=$(arg k_imu) --k_cam_imu=$(arg k_cam_imu)"/>
 </launch>
 
