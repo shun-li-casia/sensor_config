@@ -87,12 +87,30 @@ void ImuCallback(unsigned char* data_block, int data_block_len) {
 
   struct imu_data data;
 
-  data.gyr_x_ = (int16_t)(data_block[0] | (data_block[1] << 8)) * 1.0 * 0.025 *
-                pi_div_180;
-  data.gyr_y_ = (int16_t)(data_block[2] | (data_block[3] << 8)) * 1.0 * 0.025 *
-                pi_div_180;
-  data.gyr_z_ = (int16_t)(data_block[4] | (data_block[5] << 8)) * 1.0 * 0.025 *
-                pi_div_180;
+  char *env_value;
+
+  env_value = getenv("IMU_ID");
+
+  if (env_value != NULL) {
+      if(*env_value == '1') {
+          data.gyr_x_ = (int16_t)(data_block[0] | (data_block[1] << 8)) * 1.0 * 0.00625 *
+                    pi_div_180;
+          data.gyr_y_ = (int16_t)(data_block[2] | (data_block[3] << 8)) * 1.0 * 0.00625 *
+                    pi_div_180;
+          data.gyr_z_ = (int16_t)(data_block[4] | (data_block[5] << 8)) * 1.0 * 0.00625 *
+                    pi_div_180;
+      } else if (*env_value == '2') {
+          data.gyr_x_ = (int16_t)(data_block[0] | (data_block[1] << 8)) * 1.0 * 0.025 *
+                    pi_div_180;
+          data.gyr_y_ = (int16_t)(data_block[2] | (data_block[3] << 8)) * 1.0 * 0.025 *
+                    pi_div_180;
+          data.gyr_z_ = (int16_t)(data_block[4] | (data_block[5] << 8)) * 1.0 * 0.025 *
+                    pi_div_180;      
+      }
+	  
+  } else {
+      printf("The environment variable SOME_VARIABLE is not set.\n");
+  }
   data.acc_x_ =
       (int16_t)(data_block[6] | (data_block[7] << 8)) * 1.0 * 0.00025 * g;
   data.acc_y_ =
