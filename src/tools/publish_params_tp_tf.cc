@@ -25,8 +25,10 @@
 int main(int argc, char** argv) {
   cmdline::parser par;
   par.add<int>("uav_id", 0, "uav id", true);
-  par.add<std::string>("t_b_file", 0,
-                       "the transformation between the tag and the body", true);
+  par.add<std::string>(
+      "t_b_file", 0,
+      "the transformation between the tag and the body, use none if not exist",
+      true);
   par.add<std::string>("k_imu", 0, "kalibr imu file", true);
   par.add<std::string>("k_cam_imu", 0, "kalibr camera imu file", true);
   par.parse_check(argc, argv);
@@ -35,14 +37,8 @@ int main(int argc, char** argv) {
   const std::string imu_file = par.get<std::string>("k_imu");
   const std::string cam_imu_file = par.get<std::string>("k_cam_imu");
 
-  bool has_tag = par.exist("t_b_file");
-  std::string t_b_t_file = "";
-  if (has_tag) {
-    t_b_t_file = par.get<std::string>("t_b_file");
-    if (t_b_t_file == "") {
-      has_tag = false;
-    }
-  }
+  std::string t_b_t_file = par.get<std::string>("t_b_file");
+  bool has_tag = (t_b_t_file != "none") && (t_b_t_file != "");
 
   ros::init(argc, argv, "publish_params_tp_tf_node");
   ros::NodeHandle nh;
