@@ -12,6 +12,8 @@ extern "C"{
 int get_imu_data_start();
 int get_imu_data_stop();
 
+int set_led_control(unsigned char num);
+
 #ifdef __cplusplus
 #if __cplusplus
 }

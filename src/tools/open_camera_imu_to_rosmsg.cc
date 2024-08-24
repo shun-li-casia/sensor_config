@@ -241,6 +241,16 @@ int main(int argc, char* argv[]) {
   const int camera_is_stable = 10;
   int count = 0;
 
+  char *env_value;
+
+  env_value = getenv("UAV_ID");
+  
+  if(*env_value >= 0 && *env_value <= 7) {
+    set_led_control(*env_value - '0' + 2);
+  } else {
+    PCM_PRINT_ERROR("please check the UAV_ID NUM is between 0 to 7!!!\n");
+  }
+
   while (ros::ok()) {
     timer.Start();
     cv::Mat frame, rgb;
