@@ -41,7 +41,7 @@ bool StereoImu::readKalibr(const std::string& cam_imu_chain_path,
   if (!cam1_.cam_params_.readKalibrSingleCam(cam_imu_chain_path)) {
     return false;
   }
-  cam0_.cam_params_.camera_name() = "uav_" + std::to_string(uav_id_) + "_cam1";
+  cam1_.cam_params_.camera_name() = "uav_" + std::to_string(uav_id_) + "_cam1";
 
   auto n = YAML::LoadFile(cam_imu_chain_path);
   if (n.IsNull()) {
