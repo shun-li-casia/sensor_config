@@ -108,7 +108,7 @@ void ImuCallback(unsigned char* data_block, int data_block_len) {
       }
 	  
   } else {
-      printf("The environment variable SOME_VARIABLE is not set.\n");
+      printf("The environment variable IMU_ID is not set.\n");
   }
 
   data.acc_x_ =
@@ -249,7 +249,7 @@ int main(int argc, char* argv[]) {
 
   env_value = getenv("UAV_ID");
   
-  if(*env_value >= 0 && *env_value <= 7) {
+  if(*env_value >= '0' && *env_value <= '7') {
     set_led_control(*env_value - '0' + 2);
   } else {
     PCM_PRINT_ERROR("please check the UAV_ID NUM is between 0 to 7!!!\n");
