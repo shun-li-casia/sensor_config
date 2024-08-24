@@ -128,11 +128,11 @@ bool StereoImu::writeVins(const std::string& path, const int uav_id) const {
   fs << "imu" << 1;
   fs << "num_of_cam" << 2;
   fs << "imu_topic"
-     << "/uav_" + std::to_string(uav_id_) + imu0_.rostopic();
+     << "/uav_" + std::to_string(uav_id_) + "/imu_raw_0";
   fs << "image0_topic"
-     << "/uav_" + std::to_string(uav_id_) + cam0_.cam_params_.rostopic();
+     << "/uav_" + std::to_string(uav_id_) + "/cam_0";
   fs << "image1_topic"
-     << "/uav_" + std::to_string(uav_id_) + cam1_.cam_params_.rostopic();
+     << "/uav_" + std::to_string(uav_id_) + "/cam_1";
   fs << "output_path"
      << "~/vins_output";
   fs << "cam0_calib" << cam0_.cam_params_.camera_name() + ".yaml";
