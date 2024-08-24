@@ -43,7 +43,7 @@ int main(int argc, char** argv) {
   ros::init(argc, argv, "publish_params_tp_tf_node");
   ros::NodeHandle nh;
 
-  sensor_config::StereoImu stereo_imu;
+  sensor_config::StereoImu stereo_imu(uav_id);
   stereo_imu.readKalibr(cam_imu_file, imu_file);
 
   // STEP: brodacast the tf, T_b_c0, T_b_c1, T_b_t (only uav_id=1,2,3)

@@ -125,10 +125,14 @@ bool StereoImu::writeVins(const std::string& path, const int uav_id) const {
   fs << "uav_id" << uav_id;
   fs << "imu" << 1;
   fs << "num_of_cam" << 2;
-  fs << "imu_topic" << imu0_.rostopic();
-  fs << "image0_topic" << cam0_.cam_params_.rostopic();
-  fs << "image1_topic" << cam1_.cam_params_.rostopic();
-  fs << "output_path" << "~/vins_output/";
+  fs << "imu_topic"
+     << "/uav_" + std::to_string(uav_id_) + imu0_.rostopic();
+  fs << "image0_topic"
+     << "/uav_" + std::to_string(uav_id_) + cam0_.cam_params_.rostopic();
+  fs << "image1_topic"
+     << "/uav_" + std::to_string(uav_id_) + cam1_.cam_params_.rostopic();
+  fs << "output_path"
+     << "~/vins_output";
   fs << "cam0_calib" << cam0_.cam_params_.camera_name() + ".yaml";
   fs << "cam1_calib" << cam1_.cam_params_.camera_name() + ".yaml";
   fs << "image_width" << cam0_.cam_params_.img_w();
@@ -168,7 +172,8 @@ bool StereoImu::writeVins(const std::string& path, const int uav_id) const {
   fs << "estimate_td" << 1;
   fs << "td" << (cam0_.time_shift_ + cam1_.time_shift_) * 0.5f;
   fs << "load_previous_pose_graph" << 0;
-  fs << "pose_graph_save_path" << "~/output/pose_graph/";
+  fs << "pose_graph_save_path"
+     << "~/output/pose_graph/";
   fs << "save_image" << 0;
 
   // 关闭文件存储

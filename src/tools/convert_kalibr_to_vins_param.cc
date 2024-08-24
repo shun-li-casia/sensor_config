@@ -26,9 +26,12 @@ int main(int argc, char* argv[]) {
   std::string k_imu = par.get<std::string>("k_imu");
   std::string k_cam_imu = par.get<std::string>("k_cam_imu");
 
-  sensor_config::StereoImu s;
+  int uav_id = par.get<int>("uav_id");
+
+  sensor_config::StereoImu s(uav_id);
   s.readKalibr(k_cam_imu, k_imu);
-  s.writeVins("vins_params.yaml", par.get<int>("uav_id"));
+  s.writeVins("uav_" + std::to_string(uav_id) + "vins_params.yaml",
+              par.get<int>("uav_id"));
 
   return 0;
 }

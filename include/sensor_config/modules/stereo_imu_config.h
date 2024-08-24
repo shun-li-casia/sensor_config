@@ -30,6 +30,8 @@ class StereoImu {
     PinholeCamera::Parameters cam_params_;
   };
 
+  StereoImu(int uav_id) : uav_id_(uav_id){};
+
   bool readKalibr(const std::string& cam_imu_chain_path,
                   const std::string& imu_path);
 
@@ -39,6 +41,9 @@ class StereoImu {
   CamInStereo cam0_, cam1_;
   Eigen::Matrix4d T_c1_c0_;
   Imu imu0_;
+
+  // id
+  int uav_id_;
 
  private:
   void writeCameraCV(const CamInStereo& cam) const;
