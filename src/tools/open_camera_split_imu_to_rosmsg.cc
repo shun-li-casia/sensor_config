@@ -86,29 +86,29 @@ void ImuCallback(unsigned char* data_block, int data_block_len) {
   }
 
   struct imu_data data;
-  char *env_value;
+  char* env_value;
 
   env_value = getenv("IMU_ID");
 
   if (env_value != NULL) {
-      if(*env_value == '1') {
-          data.gyr_x_ = (int16_t)(data_block[0] | (data_block[1] << 8)) * 1.0 * 0.00625 *
-                    pi_div_180;
-          data.gyr_y_ = (int16_t)(data_block[2] | (data_block[3] << 8)) * 1.0 * 0.00625 *
-                    pi_div_180;
-          data.gyr_z_ = (int16_t)(data_block[4] | (data_block[5] << 8)) * 1.0 * 0.00625 *
-                    pi_div_180;
-      } else if (*env_value == '2') {
-          data.gyr_x_ = (int16_t)(data_block[0] | (data_block[1] << 8)) * 1.0 * 0.025 *
-                    pi_div_180;
-          data.gyr_y_ = (int16_t)(data_block[2] | (data_block[3] << 8)) * 1.0 * 0.025 *
-                    pi_div_180;
-          data.gyr_z_ = (int16_t)(data_block[4] | (data_block[5] << 8)) * 1.0 * 0.025 *
-                    pi_div_180;      
-      }
-	  
+    if (*env_value == '1') {
+      data.gyr_x_ = (int16_t)(data_block[0] | (data_block[1] << 8)) * 1.0 *
+                    0.00625 * pi_div_180;
+      data.gyr_y_ = (int16_t)(data_block[2] | (data_block[3] << 8)) * 1.0 *
+                    0.00625 * pi_div_180;
+      data.gyr_z_ = (int16_t)(data_block[4] | (data_block[5] << 8)) * 1.0 *
+                    0.00625 * pi_div_180;
+    } else if (*env_value == '2') {
+      data.gyr_x_ = (int16_t)(data_block[0] | (data_block[1] << 8)) * 1.0 *
+                    0.025 * pi_div_180;
+      data.gyr_y_ = (int16_t)(data_block[2] | (data_block[3] << 8)) * 1.0 *
+                    0.025 * pi_div_180;
+      data.gyr_z_ = (int16_t)(data_block[4] | (data_block[5] << 8)) * 1.0 *
+                    0.025 * pi_div_180;
+    }
+
   } else {
-      printf("The environment variable IMU_ID is not set.\n");
+    printf("The environment variable IMU_ID is not set.\n");
   }
 
   data.acc_x_ =
@@ -133,8 +133,9 @@ void ImuCallback(unsigned char* data_block, int data_block_len) {
     double time_diff_s = 0.0f;
     double tp_diff_ms = data.tp_ - g_last_tp;
     if (tp_diff_ms > 35) {
-      PCM_PRINT_WARN("lost one imu frame!\n");
-      time_diff_s = tp_diff_ms * 1e-3;
+      PCM_PRINT_WARN("lost one imu frame! current received tp is %u\n",
+                     data.tp_);
+      return;
     } else {
       if (data.stamp_ > g_last_stamp) {
         uint16_t stamp_diff = data.stamp_ - g_last_stamp;
@@ -202,10 +203,8 @@ int main(int argc, char* argv[]) {
 
   int uav_id = par.get<int>("uav_id");
   int camera_id = par.get<int>("camera_id");
-  ros::Publisher l_image_pub = nh.advertise<sensor_msgs::Image>(
-      "cam_0", 1);
-  ros::Publisher r_image_pub = nh.advertise<sensor_msgs::Image>(
-      "cam_1", 1);
+  ros::Publisher l_image_pub = nh.advertise<sensor_msgs::Image>("cam_0", 1);
+  ros::Publisher r_image_pub = nh.advertise<sensor_msgs::Image>("cam_1", 1);
   g_imu_pub = nh.advertise<sensor_msgs::Imu>("imu_raw_0", 10000);
 
   cv::VideoCapture cap;
@@ -245,16 +244,16 @@ int main(int argc, char* argv[]) {
   const int camera_is_stable = 10;
   int count = 0;
 
-  char *env_value;
+  char* env_value;
 
   env_value = getenv("UAV_ID");
-  
-  if(*env_value >= '0' && *env_value <= '7') {
+
+  if (*env_value >= '0' && *env_value <= '7') {
     set_led_control(*env_value - '0' + 2);
   } else {
     PCM_PRINT_ERROR("please check the UAV_ID NUM is between 0 to 7!!!\n");
   }
-  
+
   while (ros::ok()) {
     timer.Start();
     cv::Mat frame, raw_img;
