@@ -84,3 +84,7 @@ target_link_libraries(convert_kalibr_to_vins_param ${PROJECT_NAME})
 add_executable(publish_params_tp_tf
                src/tools/publish_params_tp_tf.cc)
 target_link_libraries(publish_params_tp_tf ${PROJECT_NAME})
+
+add_executable(imu_filter
+               src/tools/imu_filter.cc)
+target_link_libraries(imu_filter ${PROJECT_NAME})
