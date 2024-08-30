@@ -53,8 +53,10 @@ int main(int argc, char* argv[]) {
   nh.param("out_imu_topic", out_imu_topic, std::string("/uav_2/imu_filter"));
   nh.param("gain", gain, float(0.1));
 
-  acc_filter = std::make_shared<OneOrderLowPassFilter<Eigen::Vector3d>>(gain);
-  gyr_filter = std::make_shared<OneOrderLowPassFilter<Eigen::Vector3d>>(gain);
+  acc_filter = std::make_shared<OneOrderLowPassFilter<Eigen::Vector3d>>(
+      Eigen::Vector3d(0, 0, 0), gain);
+  gyr_filter = std::make_shared<OneOrderLowPassFilter<Eigen::Vector3d>>(
+      Eigen::Vector3d(0, 0, 0), gain);
 
   imu_pub = nh.advertise<sensor_msgs::Imu>(out_imu_topic, 2000);
   ros::Subscriber imu_sub = nh.subscribe(in_imu_topic, 2000, imu_callback);

@@ -19,23 +19,22 @@
 template <typename T>
 class OneOrderLowPassFilter {
  public:
-  OneOrderLowPassFilter(float gain) : gain_(gain) {
+  OneOrderLowPassFilter(T zero, float gain) : last_output_(zero), gain_(gain) {
     if (gain_ > 1.0)
       gain_ = 1.0;
     else if (gain_ < 0.0)
       gain_ = 0.0;
-
-    last_output_ = T();
   }
 
   T GetOutput(const T& input) {
     T output = gain_ * input + (1 - gain_) * last_output_;
+    last_output_ = output;
     return output;
   }
 
  private:
-  float gain_;
   T last_output_;
+  float gain_;
 };
 
 #endif

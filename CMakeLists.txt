@@ -88,3 +88,6 @@ target_link_libraries(publish_params_tp_tf ${PROJECT_NAME})
 add_executable(imu_filter
                src/tools/imu_filter.cc)
 target_link_libraries(imu_filter ${PROJECT_NAME})
+
+add_executable(fake_imu src/test/fake_imu.cc)
+target_link_libraries(fake_imu ${PROJECT_NAME})
