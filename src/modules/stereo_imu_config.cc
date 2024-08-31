@@ -21,6 +21,8 @@
 #include <Eigen/Core>
 #include <sophus/se3.hpp>
 
+#include "utility_tool/print_ctrl_macro.h"
+
 namespace sensor_config {
 
 bool StereoImu::readKalibr(const std::string& cam_imu_chain_path,
@@ -127,14 +129,10 @@ bool StereoImu::writeVins(const std::string& path, const int uav_id) const {
   fs << "uav_id" << uav_id;
   fs << "imu" << 1;
   fs << "num_of_cam" << 2;
-  fs << "imu_topic"
-     << "/uav_" + std::to_string(uav_id_) + "/imu_raw_0";
-  fs << "image0_topic"
-     << "/uav_" + std::to_string(uav_id_) + "/cam_0";
-  fs << "image1_topic"
-     << "/uav_" + std::to_string(uav_id_) + "/cam_1";
-  fs << "output_path"
-     << "~/vins_output";
+  fs << "imu_topic" << "/uav_" + std::to_string(uav_id_) + "/imu_raw_0";
+  fs << "image0_topic" << "/uav_" + std::to_string(uav_id_) + "/cam_0";
+  fs << "image1_topic" << "/uav_" + std::to_string(uav_id_) + "/cam_1";
+  fs << "output_path" << "~/vins_output";
   fs << "cam0_calib" << cam0_.cam_params_.camera_name() + ".yaml";
   fs << "cam1_calib" << cam1_.cam_params_.camera_name() + ".yaml";
   fs << "image_width" << cam0_.cam_params_.img_w();
@@ -157,31 +155,33 @@ bool StereoImu::writeVins(const std::string& path, const int uav_id) const {
 
   // Write other parameters
   fs << "multiple_thread" << 1;
-  fs << "max_cnt" << 200;
-  fs << "min_dist" << 15;
+  fs << "max_cnt" << 500;  // default 200
+  fs << "min_dist" << 10;  // default 10
   fs << "freq" << 25;
   fs << "F_threshold" << 1.0;
   fs << "show_track" << 1;
   fs << "flow_back" << 1;
   fs << "max_solver_time" << 0.04;
-  fs << "max_num_iterations" << 8;
+  fs << "max_num_iterations" << 10;  // default 10
   fs << "keyframe_parallax" << 10.0;
-  fs << "acc_n" << imu0_.acc_n();
-  fs << "gyr_n" << imu0_.gyr_n();
-  fs << "acc_w" << imu0_.acc_w();
-  fs << "gyr_w" << imu0_.gyr_w();
+
+  // NOTE: 10 times bigger of the noise of the calibrated imu
+  fs << "acc_n" << imu0_.acc_n() * 10.0f;
+  fs << "gyr_n" << imu0_.gyr_n() * 10.0f;
+  fs << "acc_w" << imu0_.acc_w() * 10.0f;
+  fs << "gyr_w" << imu0_.gyr_w() * 10.0f;
+
   fs << "g_norm" << 9.81007;
-  fs << "estimate_td" << 1;
+  fs << "estimate_td" << 0;  // default 1
   fs << "td" << (cam0_.time_shift_ + cam1_.time_shift_) * 0.5f;
   fs << "load_previous_pose_graph" << 0;
-  fs << "pose_graph_save_path"
-     << "~/output/pose_graph/";
+  fs << "pose_graph_save_path" << "~/output/pose_graph/";
   fs << "save_image" << 0;
 
   // 关闭文件存储
   fs.release();
 
-  std::cout << "YAML file has been saved." << std::endl;
+  PCM_STREAM_INFO("YAML file has been saved.");
 
   return true;
 }
