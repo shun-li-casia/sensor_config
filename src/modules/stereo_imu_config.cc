@@ -181,7 +181,7 @@ bool StereoImu::writeVins(const std::string& path, const int uav_id) const {
   // 关闭文件存储
   fs.release();
 
-  PCM_STREAM_INFO("YAML file has been saved.");
+  PCM_STREAM_INFO("YAML file has been saved.\n");
 
   return true;
 }
