@@ -63,7 +63,7 @@ std::mutex g_imu_t_mutex;
 uint32_t g_last_tp = UINT32_MAX;
 uint16_t g_last_stamp = UINT16_MAX;
 bool g_is_first_frame = true;
-constexpr double g_imu_t_step_s = 48.65 * 1e-6;
+constexpr double g_imu_t_step_s = 48.6710 * 1e-6;
 
 uint32_t g_imu_seq = 0, g_img_seq = 0;
 
@@ -315,7 +315,7 @@ int main(int argc, char* argv[]) {
     PCM_STREAM_DEBUG("image header tp: "
                          << l_msg->header.stamp
                          << " ros current time: " << time_now << " diff time: "
-                         << time_now - l_msg->header.stamp << std::endl;);
+                         << l_msg->header.stamp - time_now << std::endl;);
 
     PCM_PRINT_INFO(
         "image loop cost, %.2f ms(%.2f Hz), total cost: %.2f s, imu cnt: %u\n",
