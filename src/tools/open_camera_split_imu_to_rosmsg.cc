@@ -63,7 +63,7 @@ std::mutex g_imu_t_mutex;
 uint32_t g_last_tp = UINT32_MAX;
 uint16_t g_last_stamp = UINT16_MAX;
 bool g_is_first_frame = true;
-constexpr double g_imu_t_step_s = 49.02 * 1e-6;
+constexpr double g_imu_t_step_s = 48.65 * 1e-6;
 
 uint32_t g_imu_seq = 0, g_img_seq = 0;
 
