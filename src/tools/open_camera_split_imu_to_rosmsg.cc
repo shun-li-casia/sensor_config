@@ -311,6 +311,12 @@ int main(int argc, char* argv[]) {
         cv_bridge::CvImage(r_header, "mono8", rightImage).toImageMsg();
     r_image_pub.publish(r_msg);
 
+    ros::Time time_now = ros::Time::now();
+    PCM_STREAM_DEBUG("image header tp: "
+                         << l_msg->header.stamp
+                         << " ros current time: " << time_now << " diff time: "
+                         << time_now - l_msg->header.stamp << std::endl;);
+
     PCM_PRINT_INFO(
         "image loop cost, %.2f ms(%.2f Hz), total cost: %.2f s, imu cnt: %u\n",
         timer.End(), 1000.0 / timer.End(), total.End() / 1000, g_imu_cnt);
