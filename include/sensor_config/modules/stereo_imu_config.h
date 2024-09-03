@@ -35,7 +35,8 @@ class StereoImu {
   bool readKalibr(const std::string& cam_imu_chain_path,
                   const std::string& imu_path);
 
-  bool writeVins(const std::string& path, const int uav_id) const;
+  bool writeVins(const std::string& path, const int uav_id,
+                 const float imu_noise_factor) const;
 
   // params
   CamInStereo cam0_, cam1_;
