@@ -46,7 +46,7 @@ struct imu_data {
   uint32_t frame_id_{0u};
 };
 
-constexpr float g = 9.7833;
+constexpr float g = 9.8015;
 constexpr float pi_div_180 = M_PI / 180.0f;
 
 // t_imu = t_cam + time_shift

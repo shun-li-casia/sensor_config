@@ -170,7 +170,7 @@ bool StereoImu::writeVins(const std::string& path, const int uav_id,
   fs << "flow_back" << 1;
   fs << "max_solver_time" << 0.04;
   fs << "max_num_iterations" << 10;  // default 10
-  fs << "keyframe_parallax" << 5.0;
+  fs << "keyframe_parallax" << 10.0;
 
   // NOTE: 10 times bigger of the noise of the calibrated imu
   fs << "acc_n" << imu0_.acc_n() * imu_noise_factor;
@@ -178,7 +178,7 @@ bool StereoImu::writeVins(const std::string& path, const int uav_id,
   fs << "acc_w" << imu0_.acc_w() * imu_noise_factor;
   fs << "gyr_w" << imu0_.gyr_w() * imu_noise_factor;
 
-  fs << "g_norm" << 9.7833;
+  fs << "g_norm" << 9.8015;
   fs << "estimate_td" << 0;  // default 1
   fs << "td" << (cam0_.time_shift_ + cam1_.time_shift_) * 0.5f;
   fs << "load_previous_pose_graph" << 0;
