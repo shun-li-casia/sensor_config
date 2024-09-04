@@ -176,7 +176,7 @@ bool StereoImu::writeVins(const std::string& path, const int uav_id,
   fs << "acc_w" << imu0_.acc_w() * imu_noise_factor;
   fs << "gyr_w" << imu0_.gyr_w() * imu_noise_factor;
 
-  fs << "g_norm" << 9.766; // guangzhou measured as 9.812848
+  fs << "g_norm" << 9.7833;
   fs << "estimate_td" << 0;  // default 1
   fs << "td" << (cam0_.time_shift_ + cam1_.time_shift_) * 0.5f;
   fs << "load_previous_pose_graph" << 0;
