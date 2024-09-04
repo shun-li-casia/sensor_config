@@ -1,0 +1,7 @@
+<launch>
+<arg name="uav_id" default="0" />
+<arg name="path" default="/home/ubuntu/vins_output" />
+<node pkg="sensor_config" name="record_start_end_odom_$(arg uav_id)" type="record_start_end_odom" output="screen" ns="uav_$(arg uav_id)" args="--uav_id=$(arg uav_id) --file_path=$(arg path)"/>
+</launch>
+
+

@@ -91,3 +91,6 @@ target_link_libraries(imu_filter ${PROJECT_NAME})
 
 add_executable(fake_imu src/test/fake_imu.cc)
 target_link_libraries(fake_imu ${PROJECT_NAME})
+
+add_executable(record_start_end_odom src/tools/record_start_end_odom.cc)
+target_link_libraries(record_start_end_odom ${PROJECT_NAME})
