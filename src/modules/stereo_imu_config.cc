@@ -143,6 +143,8 @@ bool StereoImu::writeVins(const std::string& path, const int uav_id,
   fs << "image_width" << cam0_.cam_params_.img_w();
   fs << "image_height" << cam0_.cam_params_.img_h();
 
+  fs << "estimate_extrinsic" << 0;
+
   // 创建IMU到相机的变换矩阵
   cv::Mat body_T_cam0(4, 4, CV_64F);
   Sophus::SE3d Tc0i(cam0_.Tci_);
@@ -168,7 +170,7 @@ bool StereoImu::writeVins(const std::string& path, const int uav_id,
   fs << "flow_back" << 1;
   fs << "max_solver_time" << 0.04;
   fs << "max_num_iterations" << 10;  // default 10
-  fs << "keyframe_parallax" << 10.0;
+  fs << "keyframe_parallax" << 5.0;
 
   // NOTE: 10 times bigger of the noise of the calibrated imu
   fs << "acc_n" << imu0_.acc_n() * imu_noise_factor;
