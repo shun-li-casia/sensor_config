@@ -24,7 +24,6 @@
 #include "utility_tool/file_writter.h"
 #include "utility_tool/system_lib.h"
 #include "utility_tool/print_ctrl_macro.h"
-#include "utility_tool/pcm_debug_helper.h"
 #include <cmath>
 
 #include <ros/duration.h>
@@ -47,14 +46,13 @@ struct imu_data {
   uint32_t frame_id_{0u};
 };
 
-constexpr float g = 9.79;
+constexpr float g = 9.8015;
 constexpr float pi_div_180 = M_PI / 180.0f;
-
 // t_imu = t_cam + time_shift
 constexpr double time_shift = -0.036f;
+constexpr double g_imu_t_step_s = 49.02 * 1e-6;
 
 static bool g_imu_is_ready = false;
-static uint32_t g_imu_cnt = 0;
 static unsigned int uart_baudrate = 1500000;
 
 ros::Publisher g_imu_pub;
@@ -63,43 +61,27 @@ std::mutex g_imu_t_mutex;
 
 uint16_t g_last_stamp = UINT16_MAX, g_max_stamp = 0;
 bool g_is_first_frame = true;
-constexpr double g_imu_t_step_s = 49.02 * 1e-6;
-utility_tool::FileWritter::Ptr g_file_writter;
 
 uint32_t g_imu_seq = 0, g_img_seq = 0;
-
-ros::Time g_last_imu_time;
-double ImuMsgCheckIntervalMs(const ros::Time& time_now) {
-  if (g_last_imu_time.is_zero()) {
-    g_last_imu_time = time_now;
-    return 0.0f;
-  }
-
-  auto interval = time_now - g_last_imu_time;
-  g_last_imu_time = time_now;
-  return interval.toSec() * 1e3;
-}
+char* g_imu_env_value = NULL;
+utility_tool::FileWritter::Ptr g_imu_writter, g_img_writter;
 
 void ImuCallback(unsigned char* data_block, int data_block_len) {
   if (!g_imu_is_ready) {
-    ros::Duration(0, 1e6);
+    ros::Duration(0, 1e6).sleep();
     return;
   }
-
   struct imu_data data;
-  char* env_value;
 
-  env_value = getenv("IMU_ID");
-
-  if (env_value != NULL) {
-    if (*env_value == '1') {
+  if (g_imu_env_value != NULL) {
+    if (*g_imu_env_value == '1') {
       data.gyr_x_ = (int16_t)(data_block[0] | (data_block[1] << 8)) * 1.0 *
                     0.00625 * pi_div_180;
       data.gyr_y_ = (int16_t)(data_block[2] | (data_block[3] << 8)) * 1.0 *
                     0.00625 * pi_div_180;
       data.gyr_z_ = (int16_t)(data_block[4] | (data_block[5] << 8)) * 1.0 *
                     0.00625 * pi_div_180;
-    } else if (*env_value == '2') {
+    } else if (*g_imu_env_value == '2') {
       data.gyr_x_ = (int16_t)(data_block[0] | (data_block[1] << 8)) * 1.0 *
                     0.025 * pi_div_180;
       data.gyr_y_ = (int16_t)(data_block[2] | (data_block[3] << 8)) * 1.0 *
@@ -107,9 +89,9 @@ void ImuCallback(unsigned char* data_block, int data_block_len) {
       data.gyr_z_ = (int16_t)(data_block[4] | (data_block[5] << 8)) * 1.0 *
                     0.025 * pi_div_180;
     }
-
   } else {
-    printf("The environment variable IMU_ID is not set.\n");
+    PCM_PRINT_ERROR("The environment variable IMU_ID is not set.\n");
+    return;
   }
 
   data.acc_x_ =
@@ -144,8 +126,7 @@ void ImuCallback(unsigned char* data_block, int data_block_len) {
 
     g_imu_t_mutex.lock();
     g_imu_time += ros::Duration(time_diff_s);
-
-    g_file_writter->Write(g_imu_time.toSec(), data.stamp_, time_diff_s);
+    g_imu_writter->Write(g_imu_time.toSec(), data.stamp_, time_diff_s);
     g_imu_t_mutex.unlock();
   }
 
@@ -163,7 +144,6 @@ void ImuCallback(unsigned char* data_block, int data_block_len) {
   g_imu_pub.publish(imu_msg);
 
   g_last_stamp = data.stamp_;
-  g_imu_cnt++;
 }
 
 int main(int argc, char* argv[]) {
@@ -181,6 +161,13 @@ int main(int argc, char* argv[]) {
   ros::NodeHandle nh;
 
   // init imu
+  char* g_imu_env_value = getenv("UAV_ID");
+  g_imu_writter = std::make_shared<utility_tool::FileWritter>(
+      "imu_debug_" + utility_tool::GetCurLocalTimeStr("%Y%m%d%H%M%S") + ".csv",
+      6);
+  g_imu_writter->SetDelimiter(",");
+  g_imu_writter->EraseOpen();
+
   std::string uart1 = "/dev/ttyUSBIMU";
   if (Set_Serial_Parse_Callback(ImuCallback) < 0) {
     PCM_PRINT_ERROR("set imu callback failed!\n");
@@ -196,11 +183,11 @@ int main(int argc, char* argv[]) {
     PCM_PRINT_INFO("open %s successfully!\n", uart1.c_str());
   }
 
-  g_file_writter = std::make_shared<utility_tool::FileWritter>(
-      "imu_debug_" + utility_tool::GetCurLocalTimeStr("%Y%m%d%H%M%S") + ".csv",
-      6);
-  g_file_writter->SetDelimiter(",");
-  g_file_writter->EraseOpen();
+  if (*g_imu_env_value >= '0' && *g_imu_env_value <= '7') {
+    set_led_control(*g_imu_env_value - '0' + 2);
+  } else {
+    PCM_PRINT_ERROR("please check the UAV_ID NUM is between 0 to 7!!!\n");
+  }
 
   int uav_id = par.get<int>("uav_id");
   int camera_id = par.get<int>("camera_id");
@@ -208,7 +195,13 @@ int main(int argc, char* argv[]) {
   ros::Publisher r_image_pub = nh.advertise<sensor_msgs::Image>("cam_1", 1);
   g_imu_pub = nh.advertise<sensor_msgs::Imu>("imu_raw_0", 10000);
 
+  // init the camera
   cv::VideoCapture cap;
+  g_img_writter = std::make_shared<utility_tool::FileWritter>(
+      "img_debug_" + utility_tool::GetCurLocalTimeStr("%Y%m%d%H%M%S") + ".csv",
+      6);
+  g_img_writter->SetDelimiter(",");
+  g_img_writter->EraseOpen();
 
   // loop try to open the camera
   for (int i = 0; i < 10; ++i) {
@@ -239,24 +232,11 @@ int main(int argc, char* argv[]) {
     PCM_PRINT_INFO("open the camera successfully!\n");
   }
 
-  utility_tool::Timer timer, total;
-  total.Start();
-
   const int camera_is_stable = 10;
   int count = 0;
 
-  char* env_value;
-
-  env_value = getenv("UAV_ID");
-
-  if (*env_value >= '0' && *env_value <= '7') {
-    set_led_control(*env_value - '0' + 2);
-  } else {
-    PCM_PRINT_ERROR("please check the UAV_ID NUM is between 0 to 7!!!\n");
-  }
-
+  ros::Time last_img_time(0);
   while (ros::ok()) {
-    timer.Start();
     cv::Mat frame, raw_img;
     cap >> frame;
     if (frame.empty()) {
@@ -330,11 +310,10 @@ int main(int argc, char* argv[]) {
                          << " ros current time: " << time_now << " diff time: "
                          << l_msg->header.stamp - time_now << std::endl;);
 
-    PCM_PRINT_INFO(
-        "image loop cost, %.2f ms(%.2f Hz), total cost: %.2f s, imu cnt: %u\n",
-        timer.End(), 1000.0 / timer.End(), total.End() / 1000, g_imu_cnt);
+    PCM_PRINT_INFO("img tp: %lf, diff: %lf\n", l_msg->header.stamp.toSec(),
+                   (l_msg->header.stamp - last_img_time).toSec());
 
-    g_imu_cnt = 0;
+    last_img_time = l_msg->header.stamp;
   }
 
   cap.release();
