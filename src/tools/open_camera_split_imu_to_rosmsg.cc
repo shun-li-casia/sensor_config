@@ -21,6 +21,8 @@
 
 #include "opencv2/imgproc.hpp"
 #include "utility_tool/cmdline.h"
+#include "utility_tool/file_writter.h"
+#include "utility_tool/system_lib.h"
 #include "utility_tool/print_ctrl_macro.h"
 #include "utility_tool/pcm_debug_helper.h"
 #include <cmath>
@@ -42,7 +44,6 @@ struct imu_data {
   float acc_y_{0.0f};
   float acc_z_{0.0f};
   uint16_t stamp_{0};
-  uint32_t tp_{0u};
   uint32_t frame_id_{0u};
 };
 
@@ -60,10 +61,10 @@ ros::Publisher g_imu_pub;
 ros::Time g_time_start, g_imu_time;
 std::mutex g_imu_t_mutex;
 
-uint32_t g_last_tp = UINT32_MAX;
 uint16_t g_last_stamp = UINT16_MAX;
 bool g_is_first_frame = true;
 constexpr double g_imu_t_step_s = 48.6710 * 1e-6;
+utility_tool::FileWritter::Ptr g_file_writter;
 
 uint32_t g_imu_seq = 0, g_img_seq = 0;
 
@@ -118,8 +119,6 @@ void ImuCallback(unsigned char* data_block, int data_block_len) {
   data.acc_z_ =
       (int16_t)(data_block[10] | (data_block[11] << 8)) * 1.0 * 0.00025 * g;
   data.stamp_ = (uint16_t)(data_block[12] | (data_block[13] << 8));
-  data.tp_ = (uint32_t)(data_block[14] | (data_block[15] << 8) |
-                        (data_block[16] << 16) | (data_block[17] << 24));
   data.frame_id_ = (uint32_t)(data_block[18] | (data_block[19] << 8) |
                               (data_block[20] << 16) | (data_block[21] << 24));
 
@@ -131,28 +130,18 @@ void ImuCallback(unsigned char* data_block, int data_block_len) {
     g_imu_t_mutex.unlock();
   } else {
     double time_diff_s = 0.0f;
-    double tp_diff_ms = data.tp_ - g_last_tp;
-    if (tp_diff_ms > 35) {
-      PCM_PRINT_WARN("lost one imu frame! current received tp is %u\n",
-                     data.tp_);
-      return;
-    } else {
-      if (data.stamp_ > g_last_stamp) {
-        uint16_t stamp_diff = data.stamp_ - g_last_stamp;
-        time_diff_s = stamp_diff * g_imu_t_step_s;
-      } else if (data.stamp_ < g_last_stamp) {
-        uint16_t stamp_diff = 812 - g_last_stamp + 10 + data.stamp_;
-        time_diff_s = stamp_diff * g_imu_t_step_s;
-      }
+    if (data.stamp_ > g_last_stamp) {
+      uint16_t stamp_diff = data.stamp_ - g_last_stamp;
+      time_diff_s = stamp_diff * g_imu_t_step_s;
+    } else if (data.stamp_ < g_last_stamp) {
+      uint16_t stamp_diff = 812 - g_last_stamp + 10 + data.stamp_;
+      time_diff_s = stamp_diff * g_imu_t_step_s;
     }
 
     g_imu_t_mutex.lock();
     g_imu_time += ros::Duration(time_diff_s);
-    // std::cout << "data.tp_," << data.tp_ << ",data.stamp_," << data.stamp_
-    //           << ","
-    //           << "time_diff_s," << time_diff_s << ","
-    //           << ImuMsgCheckIntervalMs(g_imu_time) << std::endl;
-    ;
+
+    g_file_writter->Write(g_imu_time.toSec(), data.stamp_, time_diff_s);
     g_imu_t_mutex.unlock();
   }
 
@@ -169,7 +158,6 @@ void ImuCallback(unsigned char* data_block, int data_block_len) {
 
   g_imu_pub.publish(imu_msg);
 
-  g_last_tp = data.tp_;
   g_last_stamp = data.stamp_;
   g_imu_cnt++;
 }
@@ -203,6 +191,12 @@ int main(int argc, char* argv[]) {
   } else {
     PCM_PRINT_INFO("open %s successfully!\n", uart1.c_str());
   }
+
+  g_file_writter = std::make_shared<utility_tool::FileWritter>(
+      "imu_debug_" + utility_tool::GetCurLocalTimeStr("%Y%m%d%H%M%S") + ".csv",
+      6);
+  g_file_writter->SetDelimiter(",");
+  g_file_writter->EraseOpen();
 
   int uav_id = par.get<int>("uav_id");
   int camera_id = par.get<int>("camera_id");
