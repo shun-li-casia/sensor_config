@@ -45,8 +45,14 @@ int main(int argc, char** argv) {
       tp_checker.Spin();
     }
   } else if (type == "image") {
-    sensor_config::TpChecker<sensor_msgs::Image> tp_checker(topic);
-    tp_checker.Spin();
+    if (if_use_bag && !bag_name.empty()) {
+      sensor_config::TpChecker<sensor_msgs::Image> tp_checker(topic, bag_name,
+                                                            "");
+      tp_checker.BagRun();
+    } else {
+      sensor_config::TpChecker<sensor_msgs::Image> tp_checker(topic);
+      tp_checker.Spin();
+    }
   } else {
     PCM_PRINT_ERROR("Type %s is not supported", type.c_str());
     return -1;
