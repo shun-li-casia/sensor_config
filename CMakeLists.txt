@@ -6,7 +6,7 @@ set(CMAKE_CXX_FLAGS "-std=c++17")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -g -fPIC")
 
 find_package(catkin REQUIRED COMPONENTS roscpp cv_bridge utility_tool
-                                        image_transport tf tf2)
+                                        image_transport tf tf2 rosbag)
 find_package(yaml-cpp REQUIRED)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)

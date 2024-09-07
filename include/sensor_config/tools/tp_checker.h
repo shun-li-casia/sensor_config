@@ -71,8 +71,8 @@ class TpChecker {
 
  private:
   std::string topic_;
-  std::string filename_;
   std::string bag_name_;
+  std::string filename_;
   utility_tool::FileWritter::Ptr file_writter_;
 
   ros::NodeHandle nh_;
