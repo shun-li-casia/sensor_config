@@ -21,6 +21,8 @@
 #include <utility_tool/file_writter.h>
 #include <utility_tool/system_lib.h>
 #include <ros/ros.h>
+#include <rosbag/bag.h>
+#include <rosbag/view.h>
 
 namespace sensor_config {
 template <typename MessageType>
@@ -33,6 +35,52 @@ class TpChecker {
     sub_ = nh_.subscribe(topic_, 100, &TpChecker::CheckTp, this);
     last_tp_ = ros::Time(0);
 
+    InitFile();
+  }
+
+  TpChecker(const std::string topic, const std::string bag_name,
+            const std::string filename = "")
+      : topic_(topic), bag_name_(bag_name), filename_(filename) {
+    InitFile();
+  }
+
+  void Spin() {
+    PCM_PRINT_INFO("Start to listen topic: %s\n", topic_.c_str());
+    PCM_PRINT_INFO("Output file: %s\n", filename_.c_str());
+    ros::spin();
+  }
+
+  void BagRun() {
+    PCM_PRINT_INFO("Start to parser topic: %s, from bag: %s\n", topic_.c_str(),
+                   bag_name_.c_str());
+    PCM_PRINT_INFO("Output file: %s\n", filename_.c_str());
+
+    rosbag::Bag bag;
+    bag.open(bag_name_, rosbag::bagmode::Read);
+    rosbag::View view(bag, rosbag::TopicQuery(topic_));
+
+    for (const rosbag::MessageInstance& m : view) {
+      MessageConstPtr msg = m.instantiate<MessageType>();
+      if (msg != NULL) {
+        CheckTp(msg);
+      }
+    }
+
+    bag.close();
+  }
+
+ private:
+  std::string topic_;
+  std::string filename_;
+  std::string bag_name_;
+  utility_tool::FileWritter::Ptr file_writter_;
+
+  ros::NodeHandle nh_;
+  ros::Subscriber sub_;
+
+  ros::Time last_tp_;
+
+  void InitFile() {
     if (filename_.empty()) {
       filename_ = utility_tool::ReplaceEleInStr(topic_, "/", "_") + "_" +
                   utility_tool::GetCurLocalTimeStr("%Y%m%d%H%M%S") + ".csv";
@@ -43,22 +91,6 @@ class TpChecker {
     file_writter_->EraseOpen();
     PCM_PRINT_DEBUG("Finish the construct!\n");
   }
-
-  void Spin() {
-    PCM_PRINT_INFO("Start to listen topic: %s\n", topic_.c_str());
-    PCM_PRINT_INFO("Output file: %s\n", filename_.c_str());
-    ros::spin();
-  }
-
- private:
-  std::string topic_;
-  std::string filename_;
-  utility_tool::FileWritter::Ptr file_writter_;
-
-  ros::NodeHandle nh_;
-  ros::Subscriber sub_;
-
-  ros::Time last_tp_;
 
   void CheckTp(const MessageConstPtr& msg) {
     if (last_tp_ == ros::Time(0)) {

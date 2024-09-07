@@ -22,7 +22,11 @@ int main(int argc, char** argv) {
   cmdline::parser par;
   par.add<std::string>("type", 'i', "file name", true);
   par.add<std::string>("topic", 't', "file name", true);
+  par.add<std::string>("bag", 'b', "ros bag name", false, "");
   par.parse_check(argc, argv);
+
+  bool if_use_bag = par.exist("bag");
+  std::string bag_name = par.get<std::string>("bag");
 
   ros::init(argc, argv,
             "tp_checker" + utility_tool::GetCurLocalTimeStr("%H%M%S"));
@@ -32,8 +36,14 @@ int main(int argc, char** argv) {
   std::string type = par.get<std::string>("type");
 
   if (type == "imu") {
-    sensor_config::TpChecker<sensor_msgs::Imu> tp_checker(topic);
-    tp_checker.Spin();
+    if (if_use_bag && !bag_name.empty()) {
+      sensor_config::TpChecker<sensor_msgs::Imu> tp_checker(topic, bag_name,
+                                                            "");
+      tp_checker.BagRun();
+    } else {
+      sensor_config::TpChecker<sensor_msgs::Imu> tp_checker(topic);
+      tp_checker.Spin();
+    }
   } else if (type == "image") {
     sensor_config::TpChecker<sensor_msgs::Image> tp_checker(topic);
     tp_checker.Spin();
