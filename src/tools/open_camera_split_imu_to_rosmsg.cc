@@ -50,6 +50,7 @@ constexpr float g = 9.8015;
 constexpr float pi_div_180 = M_PI / 180.0f;
 // t_imu = t_cam + time_shift
 constexpr double time_shift = -0.036f;
+// NOTE: 48.6710
 constexpr double g_imu_t_step_s = 49.02 * 1e-6;
 
 static bool g_imu_is_ready = false;
