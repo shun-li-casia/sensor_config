@@ -72,6 +72,9 @@ target_link_libraries(undistort_stereo ${PROJECT_NAME})
 add_executable(open_camera_split_imu_to_rosmsg src/tools/open_camera_split_imu_to_rosmsg.cc)
 target_link_libraries(open_camera_split_imu_to_rosmsg ${PROJECT_NAME})
 
+add_executable(open_camera_split_imu_to_rosmsg_ros_time src/tools/open_camera_split_imu_to_rosmsg_ros_time.cc)
+target_link_libraries(open_camera_split_imu_to_rosmsg_ros_time ${PROJECT_NAME})
+
 add_executable(preview_rosimage src/tools/preview_rosimage.cc)
 target_link_libraries(preview_rosimage ${PROJECT_NAME})
 
@@ -89,6 +92,9 @@ target_link_libraries(imu_filter ${PROJECT_NAME})
 
 add_executable(fake_imu src/test/fake_imu.cc)
 target_link_libraries(fake_imu ${PROJECT_NAME})
+
+add_executable(test_extreme_ros_time src/test/test_extreme_ros_time.cc)
+target_link_libraries(test_extreme_ros_time ${PROJECT_NAME})
 
 add_executable(record_start_end_odom src/tools/record_start_end_odom.cc)
 target_link_libraries(record_start_end_odom ${PROJECT_NAME})
