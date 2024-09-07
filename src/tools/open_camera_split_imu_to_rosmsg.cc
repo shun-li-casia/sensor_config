@@ -180,7 +180,10 @@ int main(int argc, char* argv[]) {
   par.add<int>("uav_id", 'u', "uav id", true, 0);
   par.add<int>("imu_uart", 'i', "imu_uart id", true, 0);
   par.add<int>("camera_id", 'c', "camera id", true, 0);
+  par.add<int>("if_gray", 'g', "use gray image", true, 0);
   par.parse_check(argc, argv);
+
+  bool if_gray = par.get<int>("if_gray");
 
   ros::init(argc, argv, "open_camera_imu_to_rosmsg_node");
   ros::NodeHandle nh;
@@ -275,7 +278,11 @@ int main(int argc, char* argv[]) {
       PCM_PRINT_INFO("start IMU!\n");
     }
 
-    cv::cvtColor(frame, raw_img, cv::COLOR_YUV2GRAY_UYVY);
+    if (if_gray) {
+      cv::cvtColor(frame, raw_img, cv::COLOR_YUV2GRAY_UYVY);
+    } else {
+      cv::cvtColor(frame, raw_img, cv::COLOR_YUV2BGR_UYVY);
+    }
 
     // split
     int width = raw_img.cols;
@@ -301,14 +308,22 @@ int main(int argc, char* argv[]) {
 
     std_msgs::Header l_header = header;
     l_header.frame_id = "uav_" + std::to_string(uav_id) + "_cam_0";
-    sensor_msgs::ImagePtr l_msg =
-        cv_bridge::CvImage(l_header, "mono8", leftImage).toImageMsg();
+    sensor_msgs::ImagePtr l_msg;
+    if (if_gray) {
+      l_msg = cv_bridge::CvImage(l_header, "mono8", leftImage).toImageMsg();
+    } else {
+      l_msg = cv_bridge::CvImage(l_header, "bgr8", leftImage).toImageMsg();
+    }
     l_image_pub.publish(l_msg);
 
     std_msgs::Header r_header = header;
     r_header.frame_id = "uav_" + std::to_string(uav_id) + "_cam_1";
-    sensor_msgs::ImagePtr r_msg =
-        cv_bridge::CvImage(r_header, "mono8", rightImage).toImageMsg();
+    sensor_msgs::ImagePtr r_msg;
+    if (if_gray) {
+      r_msg = cv_bridge::CvImage(r_header, "mono8", rightImage).toImageMsg();
+    } else {
+      r_msg = cv_bridge::CvImage(r_header, "bgr8", rightImage).toImageMsg();
+    }
     r_image_pub.publish(r_msg);
 
     ros::Time time_now = ros::Time::now();

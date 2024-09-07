@@ -27,7 +27,8 @@
 
 void img_callback(const sensor_msgs::Image::ConstPtr& img_msg) {
   PCM_PRINT_INFO("image received!\n");
-  cv_bridge::CvImageConstPtr ptr = cv_bridge::toCvCopy(img_msg, "bgr8");
+  cv_bridge::CvImageConstPtr ptr =
+      cv_bridge::toCvCopy(img_msg, img_msg->encoding);
   const cv::Mat& rgb = ptr->image;
   cv::imshow("usb_cam_img", rgb);
   cv::waitKey(1);
