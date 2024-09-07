@@ -162,7 +162,7 @@ int main(int argc, char* argv[]) {
   ros::NodeHandle nh;
 
   // init imu
-  char* g_imu_env_value = getenv("UAV_ID");
+  g_imu_env_value = getenv("UAV_ID");
   g_imu_writter = std::make_shared<utility_tool::FileWritter>(
       "imu_debug_" + utility_tool::GetCurLocalTimeStr("%Y%m%d%H%M%S") + ".csv",
       6);
