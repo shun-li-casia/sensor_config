@@ -1,4 +1,1 @@
-gnome-terminal --window  -e 'bash -c "source ~/.bashrc; roscore; exec bash"' \
---tab -e 'bash -c "source ~/.bashrc; sleep 1;rosrun sensor_config open_camera_imu_to_rosmsg -i 0 -c 0;  exec bash"' \
---tab -e 'bash -c "source ~/.bashrc; sleep 10;rosrun sensor_config split_hconcate_image -u 0 -c 0 -r 25; exec bash"' \
---tab -e 'bash -c "source ~/.bashrc; sleep 15;rosrun sensor_config preview_rosimage -i /hconcate_image_cam_0; exec bash"' \
+gnome-terminal --window  -e 'bash -c "taskset -c 2 roslaunch sensor_config open_camera_split_imu.launch uav_id:=$UAV_ID; exec bash"' \
