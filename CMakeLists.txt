@@ -91,3 +91,6 @@ target_link_libraries(fake_imu ${PROJECT_NAME})
 
 add_executable(record_start_end_odom src/tools/record_start_end_odom.cc)
 target_link_libraries(record_start_end_odom ${PROJECT_NAME})
+
+add_executable(tp_checker src/tools/tp_checker.cc)
+target_link_libraries(tp_checker ${PROJECT_NAME})

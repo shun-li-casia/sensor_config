@@ -14,12 +14,29 @@
  *******************************************************************************/
 
 #include <utility_tool/cmdline.h>
-#include <utility_tool/print_ctrl_macro.h>
-#include <utility_tool/pcm_debug_helper.h>
+#include <sensor_config/tools/tp_checker.h>
+#include <sensor_msgs/Imu.h>
+#include <sensor_msgs/Image.h>
 
-int main(int argc, char **argv) {
-
+int main(int argc, char** argv) {
   cmdline::parser par;
-  par.add<
-  
+  par.add<std::string>("type", 'i', "file name", true);
+  par.add<std::string>("topic", 't', "file name", true);
+
+  par.parse_check(argc, argv);
+
+  std::string topic = par.get<std::string>("topic");
+  std::string type = par.get<std::string>("type");
+  if (type == "imu") {
+    sensor_config::TpChecker<sensor_msgs::Imu> tp_checker(topic);
+    tp_checker.Spin();
+  } else if (type == "image") {
+    sensor_config::TpChecker<sensor_msgs::Image> tp_checker(topic);
+    tp_checker.Spin();
+  } else {
+    PCM_PRINT_ERROR("Type %s is not supported", type.c_str());
+    return -1;
+  }
+
+  return 0;
 }
