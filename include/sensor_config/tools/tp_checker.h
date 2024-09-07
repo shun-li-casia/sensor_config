@@ -41,15 +41,13 @@ class TpChecker {
     file_writter_ = std::make_shared<utility_tool::FileWritter>(filename_, 6);
     file_writter_->SetDelimiter(",");
     file_writter_->EraseOpen();
+    PCM_PRINT_DEBUG("Finish the construct!\n");
   }
 
   void Spin() {
-    PCM_PRINT_INFO("Start to listen topic: %s", topic_.c_str());
-    PCM_PRINT_WARN("Output file: %s", filename_.c_str());
-    ros::Duration(2.0).sleep();
-
-    ros::MultiThreadedSpinner spinner(1);
-    spinner.spin();
+    PCM_PRINT_INFO("Start to listen topic: %s\n", topic_.c_str());
+    PCM_PRINT_INFO("Output file: %s\n", filename_.c_str());
+    ros::spin();
   }
 
  private:
@@ -65,12 +63,13 @@ class TpChecker {
   void CheckTp(const MessageConstPtr& msg) {
     if (last_tp_ == ros::Time(0)) {
       last_tp_ = msg->header.stamp;
-      return;
+      PCM_PRINT_DEBUG("IN\n");
     } else {
       ros::Duration diff = msg->header.stamp - last_tp_;
       PCM_PRINT_INFO("current tp: %lf, diff: %lf\n", msg->header.stamp.toSec(),
                      diff.toSec());
       file_writter_->Write(msg->header.stamp.toSec(), diff.toSec());
+      last_tp_ = msg->header.stamp;
     }
   }
 };

@@ -22,11 +22,15 @@ int main(int argc, char** argv) {
   cmdline::parser par;
   par.add<std::string>("type", 'i', "file name", true);
   par.add<std::string>("topic", 't', "file name", true);
-
   par.parse_check(argc, argv);
+
+  ros::init(argc, argv,
+            "tp_checker" + utility_tool::GetCurLocalTimeStr("%H%M%S"));
+  ros::NodeHandle nh;
 
   std::string topic = par.get<std::string>("topic");
   std::string type = par.get<std::string>("type");
+
   if (type == "imu") {
     sensor_config::TpChecker<sensor_msgs::Imu> tp_checker(topic);
     tp_checker.Spin();
