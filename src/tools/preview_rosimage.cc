@@ -26,7 +26,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg) {
   try {
     // Convert the ROS image message to OpenCV format using cv_bridge
     cv::Mat cv_image =
-        cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8)->image;
+        cv_bridge::toCvCopy(msg, msg->encoding)->image;
 
     // Calculate the new size, halving both width and height
     cv::Size new_size(cv_image.cols / 2, cv_image.rows / 2);
