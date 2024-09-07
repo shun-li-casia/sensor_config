@@ -61,9 +61,9 @@ ros::Publisher g_imu_pub;
 ros::Time g_time_start, g_imu_time;
 std::mutex g_imu_t_mutex;
 
-uint16_t g_last_stamp = UINT16_MAX;
+uint16_t g_last_stamp = UINT16_MAX, g_max_stamp = 0;
 bool g_is_first_frame = true;
-constexpr double g_imu_t_step_s = 48.6710 * 1e-6;
+constexpr double g_imu_t_step_s = 49.02 * 1e-6;
 utility_tool::FileWritter::Ptr g_file_writter;
 
 uint32_t g_imu_seq = 0, g_img_seq = 0;
@@ -122,6 +122,10 @@ void ImuCallback(unsigned char* data_block, int data_block_len) {
   data.frame_id_ = (uint32_t)(data_block[18] | (data_block[19] << 8) |
                               (data_block[20] << 16) | (data_block[21] << 24));
 
+  if (data.stamp_ > g_max_stamp) {
+    g_max_stamp = data.stamp_;
+  }
+
   if (g_is_first_frame) {
     g_is_first_frame = false;
     g_time_start = ros::Time::now();
@@ -134,7 +138,7 @@ void ImuCallback(unsigned char* data_block, int data_block_len) {
       uint16_t stamp_diff = data.stamp_ - g_last_stamp;
       time_diff_s = stamp_diff * g_imu_t_step_s;
     } else if (data.stamp_ < g_last_stamp) {
-      uint16_t stamp_diff = 812 - g_last_stamp + 10 + data.stamp_;
+      uint16_t stamp_diff = g_max_stamp - g_last_stamp + 10 + data.stamp_;
       time_diff_s = stamp_diff * g_imu_t_step_s;
     }
 
