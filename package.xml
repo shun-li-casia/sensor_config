@@ -33,6 +33,7 @@
     <depend>utility_tool</depend>
     <depend>tf</depend>
     <depend>tf2</depend>
+    <depend>rosbag</depend>
 
   <!-- The *_depend tags are used to specify dependencies -->
   <!-- Dependencies can be catkin packages or system dependencies -->

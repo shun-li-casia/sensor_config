@@ -32,7 +32,7 @@ class TpChecker {
 
   TpChecker(const std::string& topic, const std::string filename = "")
       : topic_(topic), filename_(filename) {
-    sub_ = nh_.subscribe(topic_, 100, &TpChecker::CheckTp, this);
+    sub_ = nh_.subscribe(topic_, 10000, &TpChecker::CheckTp, this);
     last_tp_ = ros::Time(0);
 
     InitFile();

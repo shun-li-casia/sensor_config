@@ -36,6 +36,7 @@ catkin_package(
   image_transport
   tf
   tf2
+  rosbag
   )
 
 add_library(
