@@ -251,7 +251,6 @@ int main(int argc, char* argv[]) {
     cap >> frame;
     float cap_time = t_cap.End() / 1000.0f;
 
-    t_res.Start();
     if (frame.empty()) {
       PCM_PRINT_WARN("frame is empty!\n");
       continue;
@@ -288,6 +287,7 @@ int main(int argc, char* argv[]) {
     std_msgs::Header header;
     header.seq = g_img_seq++;
 
+    t_res.Start();
     // NOTE: compare the computer time and imu time
     g_imu_t_mutex.lock();
     if (g_imu_is_ready) {
@@ -326,10 +326,10 @@ int main(int argc, char* argv[]) {
     PCM_PRINT_INFO("img tp: %lf, diff: %lf\n", l_msg->header.stamp.toSec(),
                    (l_msg->header.stamp - last_img_time).toSec());
 
-    last_img_time = l_msg->header.stamp;
 
     g_img_writter->Write(ros::Time::now().toSec(), (l_msg->header.stamp - last_img_time).toSec(), cap_time,
                          t_res.End() / 1000.0f);
+    last_img_time = l_msg->header.stamp;
   }
 
   cap.release();
