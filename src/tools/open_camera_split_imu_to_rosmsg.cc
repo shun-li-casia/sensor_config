@@ -268,6 +268,7 @@ int main(int argc, char* argv[]) {
       PCM_PRINT_INFO("start IMU!\n");
     }
 
+    t_res.Start();
     if (if_gray) {
       cv::cvtColor(frame, raw_img, cv::COLOR_YUV2GRAY_UYVY);
     } else {
@@ -287,7 +288,7 @@ int main(int argc, char* argv[]) {
     std_msgs::Header header;
     header.seq = g_img_seq++;
 
-    t_res.Start();
+    float res_time = t_res.End() / 1000.0f;
     // NOTE: compare the computer time and imu time
     g_imu_t_mutex.lock();
     if (g_imu_is_ready) {
@@ -326,9 +327,9 @@ int main(int argc, char* argv[]) {
     PCM_PRINT_INFO("img tp: %lf, diff: %lf\n", l_msg->header.stamp.toSec(),
                    (l_msg->header.stamp - last_img_time).toSec());
 
-
-    g_img_writter->Write(ros::Time::now().toSec(), (l_msg->header.stamp - last_img_time).toSec(), cap_time,
-                         t_res.End() / 1000.0f);
+    g_img_writter->Write(ros::Time::now().toSec(),
+                         (l_msg->header.stamp - last_img_time).toSec(),
+                         cap_time, res_time / 1000.0f);
     last_img_time = l_msg->header.stamp;
   }
 
