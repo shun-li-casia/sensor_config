@@ -244,13 +244,14 @@ int main(int argc, char* argv[]) {
   int count = 0;
 
   ros::Time last_img_time(0);
-  utility_tool::Timer t;
+  utility_tool::Timer t_cap, t_res;
   while (ros::ok()) {
     cv::Mat frame, raw_img;
-    t.Start();
+    t_cap.Start();
     cap >> frame;
-    g_img_writter->Write(ros::Time::now().toSec(), t.End()/1000.0f);
+    float cap_time = t_cap.End() / 1000.0f;
 
+    t_res.Start();
     if (frame.empty()) {
       PCM_PRINT_WARN("frame is empty!\n");
       continue;
@@ -326,6 +327,9 @@ int main(int argc, char* argv[]) {
                    (l_msg->header.stamp - last_img_time).toSec());
 
     last_img_time = l_msg->header.stamp;
+
+    g_img_writter->Write(ros::Time::now().toSec(), (l_msg->header.stamp - last_img_time).toSec(), cap_time,
+                         t_res.End() / 1000.0f);
   }
 
   cap.release();
