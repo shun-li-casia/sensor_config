@@ -24,6 +24,7 @@
 #include "utility_tool/file_writter.h"
 #include "utility_tool/system_lib.h"
 #include "utility_tool/print_ctrl_macro.h"
+#include "utility_tool/pcm_debug_helper.h"
 #include <cmath>
 
 #include <ros/duration.h>
@@ -243,9 +244,13 @@ int main(int argc, char* argv[]) {
   int count = 0;
 
   ros::Time last_img_time(0);
+  utility_tool::Timer t;
   while (ros::ok()) {
     cv::Mat frame, raw_img;
+    t.Start();
     cap >> frame;
+    g_img_writter->Write(ros::Time::now().toSec(), t.End()/1000.0f);
+
     if (frame.empty()) {
       PCM_PRINT_WARN("frame is empty!\n");
       continue;
