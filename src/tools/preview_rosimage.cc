@@ -22,14 +22,18 @@
 #include "utility_tool/cmdline.h"
 #include "utility_tool/system_lib.h"
 
+int g_display_cnt = 0;
+
 void imageCallback(const sensor_msgs::ImageConstPtr& msg) {
   try {
+    // NOTE: every 5 frame display 1
+    if (++g_display_cnt != 5) return;
+    g_display_cnt = 0;
     // Convert the ROS image message to OpenCV format using cv_bridge
-    cv::Mat cv_image =
-        cv_bridge::toCvCopy(msg, msg->encoding)->image;
+    cv::Mat cv_image = cv_bridge::toCvCopy(msg, msg->encoding)->image;
 
     // Calculate the new size, halving both width and height
-    cv::Size new_size(cv_image.cols / 2, cv_image.rows / 2);
+    cv::Size new_size(cv_image.cols / 4, cv_image.rows / 4);
 
     // Resize the image
     cv::Mat resized_image;
@@ -41,7 +45,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg) {
     cv::waitKey(
         30);  // Wait for 30ms to prevent the program from exiting immediately
   } catch (cv_bridge::Exception& e) {
-    ROS_ERROR("Conversion from '%s' to 'bgr8' failed.", msg->encoding.c_str());
+    ROS_ERROR("Conversion '%s' failed.", msg->encoding.c_str());
   }
 }
 
