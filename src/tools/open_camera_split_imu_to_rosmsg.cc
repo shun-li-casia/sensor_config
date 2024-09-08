@@ -245,11 +245,13 @@ int main(int argc, char* argv[]) {
 
   ros::Time last_img_time(0);
   utility_tool::Timer t_cap, t_res;
-  while (ros::ok()) {
+  while (true) {
     cv::Mat frame, raw_img;
     t_cap.Start();
     cap >> frame;
     float cap_time = t_cap.End() / 1000.0f;
+
+    t_res.Start();
 
     if (frame.empty()) {
       PCM_PRINT_WARN("frame is empty!\n");
@@ -268,7 +270,6 @@ int main(int argc, char* argv[]) {
       PCM_PRINT_INFO("start IMU!\n");
     }
 
-    t_res.Start();
     if (if_gray) {
       cv::cvtColor(frame, raw_img, cv::COLOR_YUV2GRAY_UYVY);
     } else {
