@@ -69,7 +69,6 @@ utility_tool::FileWritter::Ptr g_imu_writter, g_img_writter;
 
 void ImuCallback(unsigned char* data_block, int data_block_len) {
   if (!g_imu_is_ready) {
-    ros::Duration(0, 1e6).sleep();
     return;
   }
   struct imu_data data;
@@ -105,10 +104,6 @@ void ImuCallback(unsigned char* data_block, int data_block_len) {
   data.frame_id_ = (uint32_t)(data_block[18] | (data_block[19] << 8) |
                               (data_block[20] << 16) | (data_block[21] << 24));
 
-  if (data.stamp_ > g_max_stamp) {
-    g_max_stamp = data.stamp_;
-  }
-
   if (g_is_first_frame) {
     g_is_first_frame = false;
     g_time_start = ros::Time::now();
@@ -117,12 +112,25 @@ void ImuCallback(unsigned char* data_block, int data_block_len) {
     g_imu_t_mutex.unlock();
   } else {
     double time_diff_s = 0.0f;
-    if (data.stamp_ > g_last_stamp) {
-      uint16_t stamp_diff = data.stamp_ - g_last_stamp;
-      time_diff_s = stamp_diff * g_imu_t_step_s;
-    } else if (data.stamp_ < g_last_stamp) {
-      uint16_t stamp_diff = g_max_stamp - g_last_stamp + 10 + data.stamp_;
-      time_diff_s = stamp_diff * g_imu_t_step_s;
+    if (data.stamp_ <= 812) {
+      // update the max stamp
+      if (data.stamp_ > g_max_stamp) {
+        g_max_stamp = data.stamp_;
+      }
+
+      if (data.stamp_ > g_last_stamp) {
+        uint16_t stamp_diff = data.stamp_ - g_last_stamp;
+        time_diff_s = stamp_diff * g_imu_t_step_s;
+      } else if (data.stamp_ < g_last_stamp) {
+        uint16_t stamp_diff = g_max_stamp - g_last_stamp + 10 + data.stamp_;
+        time_diff_s = stamp_diff * g_imu_t_step_s;
+      }
+
+      // update the last stamp
+      g_last_stamp = data.stamp_;
+    } else {
+      time_diff_s = 10 * g_imu_t_step_s;
+      g_last_stamp += 10;
     }
 
     g_imu_t_mutex.lock();
@@ -143,8 +151,6 @@ void ImuCallback(unsigned char* data_block, int data_block_len) {
   imu_msg.linear_acceleration.z = data.acc_z_;
 
   g_imu_pub.publish(imu_msg);
-
-  g_last_stamp = data.stamp_;
 }
 
 int main(int argc, char* argv[]) {
