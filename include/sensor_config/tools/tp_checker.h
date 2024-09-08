@@ -85,6 +85,9 @@ class TpChecker {
       filename_ = utility_tool::ReplaceEleInStr(topic_, "/", "_") + "_" +
                   utility_tool::GetCurLocalTimeStr("%Y%m%d%H%M%S") + ".csv";
     }
+    if (!bag_name_.empty()) {
+      filename_ = bag_name_ + "_" + filename_;
+    }
 
     file_writter_ = std::make_shared<utility_tool::FileWritter>(filename_, 6);
     file_writter_->SetDelimiter(",");
