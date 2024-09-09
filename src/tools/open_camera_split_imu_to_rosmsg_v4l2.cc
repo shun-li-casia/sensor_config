@@ -56,7 +56,7 @@ constexpr float pi_div_180 = M_PI / 180.0f;
 // t_imu = t_cam + time_shift
 constexpr double time_shift = -0.036f;
 // NOTE: 49.02
-constexpr double g_imu_t_step_s = 48.7805 * 1e-6;
+constexpr double g_imu_t_step_s = 48.7803 * 1e-6;
 
 std::atomic<bool> g_imu_is_ready;
 static unsigned int uart_baudrate = 1500000;
