@@ -346,10 +346,10 @@ int main(int argc, char* argv[]) {
 
     ros::Time time_now = ros::Time::now();
     ros::Duration imu_machine_diff = l_msg->header.stamp - time_now;
-    if (count > camera_is_stable + 2) {
-      double fix =
-          (imu_machine_diff - last_imu_machine_diff).toSec() / g_imu_cnt.load();
-      g_imu_t_step_s.store(g_imu_t_step_s.load() - fix);
+    if (count > camera_is_stable + 10) {
+      // double fix =
+      //     (imu_machine_diff - last_imu_machine_diff).toSec() / g_imu_cnt.load();
+      // g_imu_t_step_s.store(g_imu_t_step_s.load() - fix);
     }
     PCM_STREAM_DEBUG("image header tp: "
                          << l_msg->header.stamp
