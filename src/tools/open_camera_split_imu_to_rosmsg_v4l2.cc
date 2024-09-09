@@ -247,6 +247,7 @@ int main(int argc, char* argv[]) {
 
   ros::Time last_img_time(0);
   utility_tool::Timer t_cap, t_res;
+  ros::Rate r(200);
   while (ros::ok()) {
     cv::Mat frame, raw_img;
     t_cap.Start();
@@ -255,12 +256,10 @@ int main(int argc, char* argv[]) {
       PCM_PRINT_ERROR("read frame error!\n");
       continue;
     } else if (ret == 0) {
-      PCM_PRINT_WARN("frame is not ready!\n");
       continue;
     } else {
       ret = videoCapture->read(frame);
       if (ret != 0) {
-        PCM_PRINT_ERROR("read frame error!\n");
         continue;
       }
     }
@@ -347,6 +346,8 @@ int main(int argc, char* argv[]) {
                          (l_msg->header.stamp - last_img_time).toSec(),
                          cap_time, res_time / 1000.0f);
     last_img_time = l_msg->header.stamp;
+
+    r.sleep();
   }
 
   if (videoCapture->stop()) {
