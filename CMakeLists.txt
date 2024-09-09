@@ -5,6 +5,9 @@ set(CMAKE_BUILD_TYPE "Release")
 set(CMAKE_CXX_FLAGS "-std=c++17")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -g -fPIC")
 
+add_subdirectory(3rdparty/libv4l2_opencv_mat)
+include_directories(${libv4l2_opencv_mat_SOURCE_DIR}/inc)
+
 find_package(catkin REQUIRED COMPONENTS roscpp cv_bridge utility_tool
                                         image_transport tf tf2 rosbag)
 find_package(yaml-cpp REQUIRED)
@@ -52,7 +55,7 @@ add_library(
   ./src/modules/imu_driver/serial_protocol.c)
 
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${YAML_CPP_LIBRARIES}
-                      ${OpenCV_LIBS} fmt::fmt ${Sophus_LIBRARIES})
+                      ${OpenCV_LIBS} fmt::fmt ${Sophus_LIBRARIES} ${libv4l2_opencv_mat_LIBS})
 
 add_executable(open_camera_to_rosmsg src/tools/open_camera_to_rosmsg.cc)
 target_link_libraries(open_camera_to_rosmsg ${catkin_LIBRARIES} ${OpenCV_LIBS})
