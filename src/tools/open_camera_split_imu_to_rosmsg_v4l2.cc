@@ -173,6 +173,7 @@ int main(int argc, char* argv[]) {
   par.add<int>("imu_uart", 'i', "imu_uart id", true, 0);
   par.add<int>("camera_id", 'c', "camera id", true, 0);
   par.add<int>("if_gray", 'g', "use gray image", true, 0);
+  par.add<float>("imu_step", 's', "imu step in us", false);
   par.parse_check(argc, argv);
 
   bool if_gray = par.get<int>("if_gray");
@@ -182,6 +183,9 @@ int main(int argc, char* argv[]) {
     return -1;
   }
   g_imu_t_step_s.store(g_imu_t_step_table[uav_id] * 1e-6);
+  if (par.exist("imu_step")) {
+    g_imu_t_step_s.store(par.get<float>("imu_step") * 1e-6);
+  }
 
   ros::init(argc, argv, "open_camera_imu_to_rosmsg_node");
   ros::NodeHandle nh;
