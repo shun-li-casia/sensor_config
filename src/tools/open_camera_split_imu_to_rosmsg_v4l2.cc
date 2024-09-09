@@ -137,7 +137,7 @@ void ImuCallback(unsigned char* data_block, int data_block_len) {
       g_imu_t_mutex.lock();
       g_imu_writter->Write(g_imu_time, data.stamp_, time_diff_s, data.acc_x_,
                            data.acc_y_, data.acc_z_, data.gyr_x_, data.gyr_y_,
-                           data.gyr_z_, "DATA_ERROR");
+                           data.gyr_z_, "IMU_ERROR");
       g_imu_t_mutex.unlock();
       return;
     }

@@ -52,8 +52,8 @@ constexpr float g = 9.8015;
 constexpr float pi_div_180 = M_PI / 180.0f;
 // t_imu = t_cam + time_shift
 constexpr double time_shift = -0.036f;
-// NOTE: 48.6710
-constexpr double g_imu_t_step_s = 49.02 * 1e-6;
+// NOTE: 49.02
+constexpr double g_imu_t_step_s = 48.7803 * 1e-6;
 
 std::atomic<bool> g_imu_is_ready;
 static unsigned int uart_baudrate = 1500000;
@@ -132,15 +132,16 @@ void ImuCallback(unsigned char* data_block, int data_block_len) {
       g_last_stamp = data.stamp_;
     } else {
       g_imu_t_mutex.lock();
-      g_imu_writter->Write(g_imu_time.toSec(), data.stamp_, time_diff_s,
-                           data.acc_x_, data.acc_y_, data.acc_z_, data.gyr_x_,
-                           data.gyr_y_, data.gyr_z_);
+      g_imu_writter->Write(g_imu_time, data.stamp_, time_diff_s, data.acc_x_,
+                           data.acc_y_, data.acc_z_, data.gyr_x_, data.gyr_y_,
+                           data.gyr_z_, "IMU_ERROR");
       g_imu_t_mutex.unlock();
       return;
     }
 
     g_imu_t_mutex.lock();
     g_imu_time += ros::Duration(time_diff_s);
+    g_imu_writter->Write(g_imu_time, data.stamp_, time_diff_s);
     g_imu_t_mutex.unlock();
   }
 
@@ -248,7 +249,7 @@ int main(int argc, char* argv[]) {
   const int camera_is_stable = 10;
   uint32_t count = 0;
 
-  ros::Time last_img_time(0);
+  ros::Time last_img_time(0), begin_time = ros::Time::now();
   utility_tool::Timer t_cap, t_res;
   while (true) {
     cv::Mat frame, raw_img;
@@ -325,17 +326,19 @@ int main(int argc, char* argv[]) {
     r_image_pub.publish(r_msg);
 
     ros::Time time_now = ros::Time::now();
-    PCM_STREAM_DEBUG("image header tp: "
-                         << l_msg->header.stamp
-                         << " ros current time: " << time_now << " diff time: "
-                         << l_msg->header.stamp - time_now << std::endl;);
+    PCM_STREAM_DEBUG(
+        "image header tp: "
+            << l_msg->header.stamp << " machine current time: " << time_now
+            << " diff time: " << l_msg->header.stamp - time_now << std::endl;);
 
-    PCM_PRINT_INFO("img tp: %lf, diff: %lf\n", l_msg->header.stamp.toSec(),
-                   (l_msg->header.stamp - last_img_time).toSec());
+    double tp_diff = (l_msg->header.stamp - last_img_time).toSec();
+    PCM_PRINT_INFO("img tp: %lf, diff: %lf( %lf HZ), total: %lf\n",
+                   l_msg->header.stamp.toSec(), tp_diff, 1.0 / tp_diff,
+                   (time_now - begin_time).toSec());
 
-    g_img_writter->Write(ros::Time::now().toSec(),
-                         (l_msg->header.stamp - last_img_time).toSec(),
-                         cap_time, res_time / 1000.0f);
+    g_img_writter->Write(time_now, l_msg->header.stamp - last_img_time,
+                         cap_time, res_time / 1000.0f,
+                         l_msg->header.stamp - time_now);
     last_img_time = l_msg->header.stamp;
   }
 
