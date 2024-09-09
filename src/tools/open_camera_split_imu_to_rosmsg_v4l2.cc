@@ -346,8 +346,7 @@ int main(int argc, char* argv[]) {
 
     ros::Time time_now = ros::Time::now();
     ros::Duration imu_machine_diff = l_msg->header.stamp - time_now;
-    if (g_imu_is_ready.load() && !last_imu_machine_diff.isZero() &&
-        g_imu_cnt.load() > 0) {
+    if (count > camera_is_stable + 2) {
       double fix =
           (imu_machine_diff - last_imu_machine_diff).toSec() / g_imu_cnt.load();
       g_imu_t_step_s.store(g_imu_t_step_s.load() + fix);
