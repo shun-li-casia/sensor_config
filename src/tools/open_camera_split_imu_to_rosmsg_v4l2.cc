@@ -256,12 +256,9 @@ int main(int argc, char* argv[]) {
   uint32_t count = 0;
 
   ros::Time last_img_time(0), begin_time = ros::Time::now();
-  ros::Duration last_imu_machine_diff(0);
-  utility_tool::Timer t_cap, t_res;
   ros::Rate r(400);
   while (ros::ok()) {
     cv::Mat frame, raw_img;
-    t_cap.Start();
     int ret = videoCapture->isReadable(&capture_time_out);
     if (ret == -1) {
       PCM_PRINT_ERROR("read frame error!\n");
@@ -274,9 +271,6 @@ int main(int argc, char* argv[]) {
         continue;
       }
     }
-    float cap_time = t_cap.End() / 1000.0f;
-
-    t_res.Start();
 
     if (frame.empty()) {
       PCM_PRINT_WARN("frame is empty!\n");
@@ -314,7 +308,6 @@ int main(int argc, char* argv[]) {
     std_msgs::Header header;
     header.seq = g_img_seq++;
 
-    float res_time = t_res.End() / 1000.0f;
     // NOTE: compare the computer time and imu time
     g_imu_t_mutex.lock();
     if (g_imu_is_ready) {
@@ -346,12 +339,6 @@ int main(int argc, char* argv[]) {
 
     ros::Time time_now = ros::Time::now();
     ros::Duration imu_machine_diff = l_msg->header.stamp - time_now;
-    if (count > camera_is_stable + 10) {
-      double fix =
-          (imu_machine_diff - last_imu_machine_diff).toSec() / g_imu_cnt.load();
-      PCM_STREAM_DEBUG("fix: " << fix << std::endl;);
-      // g_imu_t_step_s.store(g_imu_t_step_s.load() - fix);
-    }
     PCM_STREAM_DEBUG("image header tp: "
                          << l_msg->header.stamp
                          << " machine current time: " << time_now
@@ -359,20 +346,16 @@ int main(int argc, char* argv[]) {
 
     double tp_diff = (l_msg->header.stamp - last_img_time).toSec();
     PCM_PRINT_INFO(
-        "img tp: %lf, diff: %lf( %lf HZ), curerent step(us): %lf, total: %lf, "
-        "imu_cnt: %d\n",
-        l_msg->header.stamp.toSec(), tp_diff, 1.0 / tp_diff,
-        g_imu_t_step_s.load() * 1e6, (time_now - begin_time).toSec(),
-        g_imu_cnt.load());
+        "img tp: %lf, diff: %lf( %lf HZ), imu_cnt: %d, step(us): %lf, total: "
+        "%lf \n",
+        l_msg->header.stamp.toSec(), tp_diff, 1.0 / tp_diff, g_imu_cnt.load(),
+        g_imu_t_step_s.load() * 1e6, (time_now - begin_time).toSec());
 
-    g_img_writter->Write(time_now, l_msg->header.stamp - last_img_time,
-                         cap_time, res_time / 1000.0f,
-                         l_msg->header.stamp - time_now);
+    g_img_writter->Write(time_now, imu_machine_diff, tp_diff);
 
-    last_imu_machine_diff = imu_machine_diff;
     last_img_time = l_msg->header.stamp;
-
     g_imu_cnt.store(0);
+
     r.sleep();
   }
 
