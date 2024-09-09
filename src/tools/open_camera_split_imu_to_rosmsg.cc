@@ -35,6 +35,7 @@
 #include <sensor_msgs/Imu.h>
 #include <opencv2/opencv.hpp>
 #include <mutex>
+#include <atomic>
 
 struct imu_data {
   float gyr_x_{0.0f};
