@@ -57,7 +57,8 @@ constexpr float pi_div_180 = M_PI / 180.0f;
 constexpr double time_shift = -0.036f;
 // NOTE: 49.02
 constexpr double g_imu_t_step_table[] = {49.02, 49.02, 49.02, 48.7803, 49.02};
-double g_imu_t_step_s = 49.02 * 1e-6;
+std::atomic<double> g_imu_t_step_s;
+std::atomic<int> g_imu_cnt;
 
 std::atomic<bool> g_imu_is_ready;
 static unsigned int uart_baudrate = 1500000;
@@ -126,10 +127,10 @@ void ImuCallback(unsigned char* data_block, int data_block_len) {
 
       if (data.stamp_ > g_last_stamp) {
         uint16_t stamp_diff = data.stamp_ - g_last_stamp;
-        time_diff_s = stamp_diff * g_imu_t_step_s;
+        time_diff_s = stamp_diff * g_imu_t_step_s.load();
       } else if (data.stamp_ < g_last_stamp) {
         uint16_t stamp_diff = g_max_stamp - g_last_stamp + 10 + data.stamp_;
-        time_diff_s = stamp_diff * g_imu_t_step_s;
+        time_diff_s = stamp_diff * g_imu_t_step_s.load();
       }
 
       // update the last stamp
@@ -147,6 +148,8 @@ void ImuCallback(unsigned char* data_block, int data_block_len) {
     g_imu_time += ros::Duration(time_diff_s);
     g_imu_writter->Write(g_imu_time, data.stamp_, time_diff_s);
     g_imu_t_mutex.unlock();
+
+    g_imu_cnt.fetch_add(1);
   }
 
   sensor_msgs::Imu imu_msg;
@@ -178,7 +181,7 @@ int main(int argc, char* argv[]) {
     PCM_PRINT_ERROR("uav id should be in [0, 4]\n");
     return -1;
   }
-  g_imu_t_step_s = g_imu_t_step_table[uav_id] * 1e-6;
+  g_imu_t_step_s.store(g_imu_t_step_table[uav_id] * 1e-6);
 
   ros::init(argc, argv, "open_camera_imu_to_rosmsg_node");
   ros::NodeHandle nh;
@@ -253,6 +256,7 @@ int main(int argc, char* argv[]) {
   uint32_t count = 0;
 
   ros::Time last_img_time(0), begin_time = ros::Time::now();
+  ros::Duration last_imu_machine_diff(0);
   utility_tool::Timer t_cap, t_res;
   ros::Rate r(400);
   while (ros::ok()) {
@@ -341,21 +345,31 @@ int main(int argc, char* argv[]) {
     r_image_pub.publish(r_msg);
 
     ros::Time time_now = ros::Time::now();
-    PCM_STREAM_DEBUG(
-        "image header tp: "
-            << l_msg->header.stamp << " machine current time: " << time_now
-            << " diff time: " << l_msg->header.stamp - time_now << std::endl;);
+    ros::Duration imu_machine_diff = l_msg->header.stamp - time_now;
+    if (g_imu_is_ready.load()) {
+      double fix =
+          (imu_machine_diff - last_imu_machine_diff).toSec() / g_imu_cnt.load();
+      g_imu_t_step_s.store(g_imu_t_step_s.load() + fix);
+    }
+    PCM_STREAM_DEBUG("image header tp: "
+                         << l_msg->header.stamp
+                         << " machine current time: " << time_now
+                         << " diff time: " << imu_machine_diff << std::endl;);
 
     double tp_diff = (l_msg->header.stamp - last_img_time).toSec();
-    PCM_PRINT_INFO("img tp: %lf, diff: %lf( %lf HZ), total: %lf\n",
-                   l_msg->header.stamp.toSec(), tp_diff, 1.0 / tp_diff,
-                   (time_now - begin_time).toSec());
+    PCM_PRINT_INFO(
+        "img tp: %lf, diff: %lf( %lf HZ), curerent step(us): %lf, total: %lf\n",
+        l_msg->header.stamp.toSec(), tp_diff, 1.0 / tp_diff,
+        g_imu_t_step_s.load() * 1e6, (time_now - begin_time).toSec());
 
     g_img_writter->Write(time_now, l_msg->header.stamp - last_img_time,
                          cap_time, res_time / 1000.0f,
                          l_msg->header.stamp - time_now);
+
+    last_imu_machine_diff = imu_machine_diff;
     last_img_time = l_msg->header.stamp;
 
+    g_imu_cnt.store(0);
     r.sleep();
   }
 
