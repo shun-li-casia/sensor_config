@@ -358,9 +358,11 @@ int main(int argc, char* argv[]) {
 
     double tp_diff = (l_msg->header.stamp - last_img_time).toSec();
     PCM_PRINT_INFO(
-        "img tp: %lf, diff: %lf( %lf HZ), curerent step(us): %lf, total: %lf\n",
+        "img tp: %lf, diff: %lf( %lf HZ), curerent step(us): %lf, total: %lf, "
+        "imu_cnt: %d\n",
         l_msg->header.stamp.toSec(), tp_diff, 1.0 / tp_diff,
-        g_imu_t_step_s.load() * 1e6, (time_now - begin_time).toSec());
+        g_imu_t_step_s.load() * 1e6, (time_now - begin_time).toSec(),
+        g_imu_cnt.load());
 
     g_img_writter->Write(time_now, l_msg->header.stamp - last_img_time,
                          cap_time, res_time / 1000.0f,
