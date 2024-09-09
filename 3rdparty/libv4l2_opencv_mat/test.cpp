@@ -14,7 +14,7 @@ int main(){
      * 图像帧格式。
      * V4L2_PIX_FMT_MJPEG （MJPEG）
      */
-    V4L2DeviceParameters param(in_devname, V4L2_PIX_FMT_MJPEG , 1920, 1080, 30, 0,verbose);
+    V4L2DeviceParameters param(in_devname, V4L2_PIX_FMT_UYVY , 3840, 1080, 30, 0,verbose);
     V4l2Capture* videoCapture = V4l2Capture::create(param, V4l2Access::IOTYPE_MMAP);
     if (videoCapture == NULL)
     {
@@ -32,7 +32,7 @@ int main(){
         int ret = videoCapture->isReadable(&tv);
         if (ret == 1)
         {
-            cv::Mat v4l2Mat;
+            cv::Mat v4l2Mat, rgb;
             ret =  videoCapture->read(v4l2Mat);
 
             if (ret != 0)
@@ -42,7 +42,8 @@ int main(){
             }
             else
             {
-               cv::imwrite("test.jpg",v4l2Mat);
+               cv::cvtColor(v4l2Mat, rgb, cv::COLOR_YUV2GRAY_UYVY);
+               cv::imwrite("test.jpg",rgb);
             }
         }
         else if (ret == -1) //返回错误
@@ -59,7 +60,7 @@ int main(){
 
 
 
-    V4L2DeviceParameters mparam(in_devname, V4L2_PIX_FMT_YUYV , 1920, 1080, 5, 0,verbose);
+    V4L2DeviceParameters mparam(in_devname, V4L2_PIX_FMT_YUYV , 3840, 1080, 5, 0,verbose);
     videoCapture = V4l2Capture::create(mparam, V4l2Access::IOTYPE_MMAP);
     while (!stop)
     {

@@ -241,7 +241,7 @@ int main(int argc, char* argv[]) {
 
   ros::Time last_img_time(0);
   utility_tool::Timer t_cap, t_res;
-  while (true) {
+  while (ros::ok()) {
     cv::Mat frame, raw_img;
     t_cap.Start();
     int ret = videoCapture->isReadable(&capture_time_out);
