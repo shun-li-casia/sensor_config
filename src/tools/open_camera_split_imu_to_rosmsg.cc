@@ -53,7 +53,7 @@ constexpr double time_shift = -0.036f;
 // NOTE: 48.6710
 constexpr double g_imu_t_step_s = 49.02 * 1e-6;
 
-static bool g_imu_is_ready = false;
+std::atomic<bool> g_imu_is_ready;
 static unsigned int uart_baudrate = 1500000;
 
 ros::Publisher g_imu_pub;
@@ -68,7 +68,7 @@ char* g_imu_env_value = NULL;
 utility_tool::FileWritter::Ptr g_imu_writter, g_img_writter;
 
 void ImuCallback(unsigned char* data_block, int data_block_len) {
-  if (!g_imu_is_ready) {
+  if (!g_imu_is_ready.load()) {
     return;
   }
   struct imu_data data;
@@ -129,13 +129,16 @@ void ImuCallback(unsigned char* data_block, int data_block_len) {
       // update the last stamp
       g_last_stamp = data.stamp_;
     } else {
-      time_diff_s = 10 * g_imu_t_step_s;
-      g_last_stamp += 10;
+      g_imu_t_mutex.lock();
+      g_imu_writter->Write(g_imu_time.toSec(), data.stamp_, time_diff_s,
+                           data.acc_x_, data.acc_y_, data.acc_z_, data.gyr_x_,
+                           data.gyr_y_, data.gyr_z_);
+      g_imu_t_mutex.unlock();
+      return;
     }
 
     g_imu_t_mutex.lock();
     g_imu_time += ros::Duration(time_diff_s);
-    g_imu_writter->Write(g_imu_time.toSec(), data.stamp_, time_diff_s);
     g_imu_t_mutex.unlock();
   }
 
@@ -168,6 +171,7 @@ int main(int argc, char* argv[]) {
   ros::NodeHandle nh;
 
   // init imu
+  g_imu_is_ready.store(false);
   g_imu_env_value = getenv("UAV_ID");
   g_imu_writter = std::make_shared<utility_tool::FileWritter>(
       "imu_debug_" + utility_tool::GetCurLocalTimeStr("%Y%m%d%H%M%S") + ".csv",
@@ -240,7 +244,7 @@ int main(int argc, char* argv[]) {
   }
 
   const int camera_is_stable = 10;
-  int count = 0;
+  uint32_t count = 0;
 
   ros::Time last_img_time(0);
   while (ros::ok()) {
@@ -257,7 +261,7 @@ int main(int argc, char* argv[]) {
         PCM_PRINT_ERROR("can not open the serial %s", uart1.c_str());
         return -1;
       }
-      g_imu_is_ready = true;
+      g_imu_is_ready.store(true);
       g_time_start = ros::Time::now();
       g_imu_time = g_time_start;
       PCM_PRINT_INFO("start IMU!\n");
