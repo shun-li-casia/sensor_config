@@ -35,6 +35,7 @@
 #include <sensor_msgs/Imu.h>
 #include <opencv2/opencv.hpp>
 #include <mutex>
+#include <atomic>
 
 #include <V4l2Capture.h>
 #include <V4l2Device.h>
