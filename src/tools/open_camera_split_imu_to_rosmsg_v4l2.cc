@@ -334,17 +334,17 @@ int main(int argc, char* argv[]) {
     r_image_pub.publish(r_msg);
 
     ros::Time time_now = ros::Time::now();
-    PCM_STREAM_DEBUG("image header tp: "
-                         << l_msg->header.stamp
-                         << " ros current time: " << time_now << " diff time: "
-                         << l_msg->header.stamp - time_now << std::endl;);
+    // PCM_STREAM_DEBUG("image header tp: "
+    //                      << l_msg->header.stamp
+    //                      << " ros current time: " << time_now << " diff time: "
+    //                      << l_msg->header.stamp - time_now << std::endl;);
 
-    PCM_PRINT_INFO("img tp: %lf, diff: %lf\n", l_msg->header.stamp.toSec(),
-                   (l_msg->header.stamp - last_img_time).toSec());
+    // PCM_PRINT_INFO("img tp: %lf, diff: %lf\n", l_msg->header.stamp.toSec(),
+    //                (l_msg->header.stamp - last_img_time).toSec());
 
-    g_img_writter->Write(ros::Time::now().toSec(),
-                         (l_msg->header.stamp - last_img_time).toSec(),
-                         cap_time, res_time / 1000.0f);
+    g_img_writter->Write(ros::Time::now(), l_msg->header.stamp - last_img_time,
+                         cap_time, res_time / 1000.0f,
+                         l_msg->header.stamp - time_now);
     last_img_time = l_msg->header.stamp;
 
     r.sleep();
