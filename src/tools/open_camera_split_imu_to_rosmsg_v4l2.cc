@@ -72,6 +72,7 @@ bool g_is_first_frame = true;
 
 uint32_t g_imu_seq = 0, g_img_seq = 0;
 char* g_imu_env_value = NULL;
+char* g_uav_env_value = NULL;
 utility_tool::FileWritter::Ptr g_imu_writter, g_img_writter;
 
 void ImuCallback(unsigned char* data_block, int data_block_len) {
@@ -187,8 +188,9 @@ int main(int argc, char* argv[]) {
   ros::NodeHandle nh;
 
   // init imu
-  g_imu_is_ready.store(false);
+  g_uav_env_value = getenv("UAV_ID");
   g_imu_env_value = getenv("IMU_ID");
+  g_imu_is_ready.store(false);
   g_imu_writter = std::make_shared<utility_tool::FileWritter>(
       "imu_debug_" + utility_tool::GetCurLocalTimeStr("%Y%m%d%H%M%S") + ".csv",
       6);
@@ -210,8 +212,8 @@ int main(int argc, char* argv[]) {
     PCM_PRINT_INFO("open %s successfully!\n", uart1.c_str());
   }
 
-  if (*g_imu_env_value >= '0' && *g_imu_env_value <= '7') {
-    set_led_control(*g_imu_env_value - '0' + 2);
+  if (*g_uav_env_value >= '0' && *g_uav_env_value <= '7') {
+    set_led_control(*g_uav_env_value - '0' + 2);
   } else {
     PCM_PRINT_ERROR("please check the IMU_ID is between 0 to 7!!!\n");
   }
