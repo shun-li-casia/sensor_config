@@ -247,7 +247,7 @@ int main(int argc, char* argv[]) {
 
   ros::Time last_img_time(0);
   utility_tool::Timer t_cap, t_res;
-  ros::Rate r(200);
+  ros::Rate r(25);
   while (ros::ok()) {
     cv::Mat frame, raw_img;
     t_cap.Start();
