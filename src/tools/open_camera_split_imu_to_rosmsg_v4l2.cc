@@ -339,14 +339,15 @@ int main(int argc, char* argv[]) {
 
     ros::Time time_now = ros::Time::now();
     ros::Duration imu_machine_diff = l_msg->header.stamp - time_now;
-    PCM_STREAM_DEBUG("image header tp: "
-                         << l_msg->header.stamp
-                         << " machine current time: " << time_now
-                         << " diff time: " << imu_machine_diff << std::endl;);
+    PCM_STREAM_DEBUG("image header tp: " << l_msg->header.stamp
+                                         << " machine current time: "
+                                         << time_now << " imu machine diff: "
+                                         << imu_machine_diff << std::endl;);
 
     double tp_diff = (l_msg->header.stamp - last_img_time).toSec();
     PCM_PRINT_INFO(
-        "img tp: %lf, diff: %lf( %lf HZ), imu_cnt: %d, step(us): %lf, total: "
+        "img tp: %lf, image tp diff: %lf( %lf HZ), imu_cnt: %d, step(us): %lf, "
+        "total: "
         "%lf \n",
         l_msg->header.stamp.toSec(), tp_diff, 1.0 / tp_diff, g_imu_cnt.load(),
         g_imu_t_step_s.load() * 1e6, (time_now - begin_time).toSec());
