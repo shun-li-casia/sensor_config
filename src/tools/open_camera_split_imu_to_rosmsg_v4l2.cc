@@ -55,8 +55,8 @@ constexpr float g = 9.8015;
 constexpr float pi_div_180 = M_PI / 180.0f;
 // t_imu = t_cam + time_shift
 constexpr double time_shift = -0.036f;
-// NOTE: 48.6710
-constexpr double g_imu_t_step_s = 48.781 * 1e-6;
+// NOTE: 49.02
+constexpr double g_imu_t_step_s = 48.7805 * 1e-6;
 
 std::atomic<bool> g_imu_is_ready;
 static unsigned int uart_baudrate = 1500000;
@@ -135,15 +135,16 @@ void ImuCallback(unsigned char* data_block, int data_block_len) {
       g_last_stamp = data.stamp_;
     } else {
       g_imu_t_mutex.lock();
-      g_imu_writter->Write(g_imu_time.toSec(), data.stamp_, time_diff_s,
-                           data.acc_x_, data.acc_y_, data.acc_z_, data.gyr_x_,
-                           data.gyr_y_, data.gyr_z_);
+      g_imu_writter->Write(g_imu_time, data.stamp_, time_diff_s, data.acc_x_,
+                           data.acc_y_, data.acc_z_, data.gyr_x_, data.gyr_y_,
+                           data.gyr_z_, "DATA_ERROR");
       g_imu_t_mutex.unlock();
       return;
     }
 
     g_imu_t_mutex.lock();
     g_imu_time += ros::Duration(time_diff_s);
+    g_imu_writter->Write(g_imu_time, data.stamp_, time_diff_s);
     g_imu_t_mutex.unlock();
   }
 
