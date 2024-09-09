@@ -24,6 +24,7 @@
 #include "utility_tool/file_writter.h"
 #include "utility_tool/system_lib.h"
 #include "utility_tool/print_ctrl_macro.h"
+#include "utility_tool/pcm_debug_helper.h"
 #include <cmath>
 
 #include <ros/duration.h>
@@ -247,9 +248,15 @@ int main(int argc, char* argv[]) {
   uint32_t count = 0;
 
   ros::Time last_img_time(0);
-  while (ros::ok()) {
+  utility_tool::Timer t_cap, t_res;
+  while (true) {
     cv::Mat frame, raw_img;
+    t_cap.Start();
     cap >> frame;
+    float cap_time = t_cap.End() / 1000.0f;
+
+    t_res.Start();
+
     if (frame.empty()) {
       PCM_PRINT_WARN("frame is empty!\n");
       continue;
@@ -286,6 +293,7 @@ int main(int argc, char* argv[]) {
     std_msgs::Header header;
     header.seq = g_img_seq++;
 
+    float res_time = t_res.End() / 1000.0f;
     // NOTE: compare the computer time and imu time
     g_imu_t_mutex.lock();
     if (g_imu_is_ready) {
@@ -324,6 +332,9 @@ int main(int argc, char* argv[]) {
     PCM_PRINT_INFO("img tp: %lf, diff: %lf\n", l_msg->header.stamp.toSec(),
                    (l_msg->header.stamp - last_img_time).toSec());
 
+    g_img_writter->Write(ros::Time::now().toSec(),
+                         (l_msg->header.stamp - last_img_time).toSec(),
+                         cap_time, res_time / 1000.0f);
     last_img_time = l_msg->header.stamp;
   }
 
