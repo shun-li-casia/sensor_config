@@ -228,6 +228,12 @@ int main(int argc, char* argv[]) {
       break;
     }
   }
+
+  if (!videoCapture) {
+    PCM_PRINT_ERROR("create videoCapture failed!\n");
+    return -1;
+  }
+
   timeval capture_time_out = {0, 400000};  // 40 millisecond
 
   g_img_writter = std::make_shared<utility_tool::FileWritter>(
@@ -247,15 +253,15 @@ int main(int argc, char* argv[]) {
     int ret = videoCapture->isReadable(&capture_time_out);
     if (ret == -1) {
       PCM_PRINT_ERROR("read frame error!\n");
-      // return -1;
+      continue;
     } else if (ret == 0) {
       PCM_PRINT_WARN("frame is not ready!\n");
-      ros::Duration(1).sleep();
+      continue;
     } else {
       ret = videoCapture->read(frame);
       if (ret != 0) {
         PCM_PRINT_ERROR("read frame error!\n");
-        // return -1;
+        continue;
       }
     }
     float cap_time = t_cap.End() / 1000.0f;
