@@ -56,7 +56,8 @@ constexpr float pi_div_180 = M_PI / 180.0f;
 // t_imu = t_cam + time_shift
 constexpr double time_shift = -0.036f;
 // NOTE: 49.02
-constexpr double g_imu_t_step_s = 48.7803 * 1e-6;
+constexpr double g_imu_t_step_table[] = {49.02, 49.02, 49.02, 48.7803, 49.02};
+double g_imu_t_step_s = 49.02 * 1e-6;
 
 std::atomic<bool> g_imu_is_ready;
 static unsigned int uart_baudrate = 1500000;
@@ -172,13 +173,19 @@ int main(int argc, char* argv[]) {
   par.parse_check(argc, argv);
 
   bool if_gray = par.get<int>("if_gray");
+  int uav_id = par.get<int>("uav_id");
+  if (uav_id < 0 || uav_id > 4) {
+    PCM_PRINT_ERROR("uav id should be in [0, 4]\n");
+    return -1;
+  }
+  g_imu_t_step_s = g_imu_t_step_table[uav_id] * 1e-6;
 
   ros::init(argc, argv, "open_camera_imu_to_rosmsg_node");
   ros::NodeHandle nh;
 
   // init imu
   g_imu_is_ready.store(false);
-  g_imu_env_value = getenv("UAV_ID");
+  g_imu_env_value = getenv("IMU_ID");
   g_imu_writter = std::make_shared<utility_tool::FileWritter>(
       "imu_debug_" + utility_tool::GetCurLocalTimeStr("%Y%m%d%H%M%S") + ".csv",
       6);
@@ -203,10 +210,9 @@ int main(int argc, char* argv[]) {
   if (*g_imu_env_value >= '0' && *g_imu_env_value <= '7') {
     set_led_control(*g_imu_env_value - '0' + 2);
   } else {
-    PCM_PRINT_ERROR("please check the UAV_ID NUM is between 0 to 7!!!\n");
+    PCM_PRINT_ERROR("please check the IMU_ID is between 0 to 7!!!\n");
   }
 
-  int uav_id = par.get<int>("uav_id");
   int camera_id = par.get<int>("camera_id");
   ros::Publisher l_image_pub = nh.advertise<sensor_msgs::Image>("cam_0", 1);
   ros::Publisher r_image_pub = nh.advertise<sensor_msgs::Image>("cam_1", 1);

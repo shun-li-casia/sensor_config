@@ -175,7 +175,7 @@ int main(int argc, char* argv[]) {
 
   // init imu
   g_imu_is_ready.store(false);
-  g_imu_env_value = getenv("UAV_ID");
+  g_imu_env_value = getenv("IMU_ID");
   g_imu_writter = std::make_shared<utility_tool::FileWritter>(
       "imu_debug_" + utility_tool::GetCurLocalTimeStr("%Y%m%d%H%M%S") + ".csv",
       6);
@@ -200,7 +200,7 @@ int main(int argc, char* argv[]) {
   if (*g_imu_env_value >= '0' && *g_imu_env_value <= '7') {
     set_led_control(*g_imu_env_value - '0' + 2);
   } else {
-    PCM_PRINT_ERROR("please check the UAV_ID NUM is between 0 to 7!!!\n");
+    PCM_PRINT_ERROR("please check the IMU_ID is between 0 to 7!!!\n");
   }
 
   int uav_id = par.get<int>("uav_id");
