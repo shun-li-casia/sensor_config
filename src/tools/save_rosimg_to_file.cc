@@ -26,7 +26,6 @@
 #include <cv_bridge/cv_bridge.h>
 
 void img_callback(const sensor_msgs::Image::ConstPtr& img_msg) {
-  PCM_PRINT_INFO("image received!\n");
   cv_bridge::CvImageConstPtr ptr =
       cv_bridge::toCvCopy(img_msg, img_msg->encoding);
   const cv::Mat& rgb = ptr->image;
@@ -35,6 +34,7 @@ void img_callback(const sensor_msgs::Image::ConstPtr& img_msg) {
 
   std::string cur_t = std::to_string(img_msg->header.stamp.toNSec());
   cv::imwrite(cur_t + ".png", rgb);
+  PCM_PRINT_INFO("image received! %s\n", (cur_t + ".png").c_str());
 }
 
 int main(int argc, char* argv[]) {
