@@ -53,8 +53,7 @@ struct imu_data {
 constexpr float g = 9.8015;
 constexpr float pi_div_180 = M_PI / 180.0f;
 // t_imu = t_cam + time_shift
-// constexpr double time_shift = -0.036f;
-constexpr double time_shift = 0.0f;
+constexpr double time_shift = -0.036f;
 // NOTE: 49.02
 constexpr double g_imu_t_step_table[] = {48.9578, 48.84, 49.02, 48.780358,
                                          49.02};
