@@ -292,6 +292,7 @@ int main(int argc, char* argv[]) {
       }
       g_imu_is_ready.store(true);
       PCM_PRINT_INFO("start IMU!\n");
+      ros::Duration(1).sleep();
     }
 
     if (if_gray) {
