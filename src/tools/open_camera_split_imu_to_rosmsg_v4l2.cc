@@ -291,8 +291,6 @@ int main(int argc, char* argv[]) {
         return -1;
       }
       g_imu_is_ready.store(true);
-      g_time_start = ros::Time::now();
-      g_imu_time = g_time_start;
       PCM_PRINT_INFO("start IMU!\n");
     }
 
@@ -317,7 +315,7 @@ int main(int argc, char* argv[]) {
 
     // NOTE: compare the computer time and imu time
     g_imu_t_mutex.lock();
-    if (g_imu_is_ready) {
+    if (g_imu_is_ready.load()) {
       header.stamp = g_imu_time + ros::Duration(time_shift);
     } else {
       header.stamp = ros::Time::now();

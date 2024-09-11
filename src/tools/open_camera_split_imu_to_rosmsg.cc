@@ -63,7 +63,7 @@ ros::Time g_time_start, g_imu_time;
 std::mutex g_imu_t_mutex;
 
 uint16_t g_last_stamp = UINT16_MAX, g_max_stamp = 0;
-bool g_is_first_frame = true;
+bool g_imu_first_frame = true;
 
 uint32_t g_imu_seq = 0, g_img_seq = 0;
 char* g_imu_env_value = NULL;
@@ -106,8 +106,8 @@ void ImuCallback(unsigned char* data_block, int data_block_len) {
   data.frame_id_ = (uint32_t)(data_block[18] | (data_block[19] << 8) |
                               (data_block[20] << 16) | (data_block[21] << 24));
 
-  if (g_is_first_frame) {
-    g_is_first_frame = false;
+  if (g_imu_first_frame) {
+    g_imu_first_frame = false;
     g_time_start = ros::Time::now();
     g_imu_t_mutex.lock();
     g_imu_time = g_time_start;
