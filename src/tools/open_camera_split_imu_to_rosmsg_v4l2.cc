@@ -120,6 +120,8 @@ void ImuCallback(unsigned char* data_block, int data_block_len) {
     g_imu_t_mutex.lock();
     g_imu_time = g_time_start;
     g_imu_t_mutex.unlock();
+    // update the last stamp
+    g_last_stamp = data.stamp_;
   } else {
     double time_diff_s = 0.0f;
     if (data.stamp_ <= 812) {
@@ -316,13 +318,13 @@ int main(int argc, char* argv[]) {
     header.seq = g_img_seq++;
 
     // NOTE: compare the computer time and imu time
-    g_imu_t_mutex.lock();
     if (g_imu_is_ready.load()) {
+      g_imu_t_mutex.lock();
       header.stamp = g_imu_time + ros::Duration(time_shift);
+      g_imu_t_mutex.unlock();
     } else {
       header.stamp = ros::Time::now();
     }
-    g_imu_t_mutex.unlock();
     ros::Time time_now = ros::Time::now();
     ros::Duration imu_machine_diff =
         header.stamp - ros::Duration(time_shift) - time_now;
