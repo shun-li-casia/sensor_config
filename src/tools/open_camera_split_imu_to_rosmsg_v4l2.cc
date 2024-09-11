@@ -55,7 +55,8 @@ constexpr float pi_div_180 = M_PI / 180.0f;
 // t_imu = t_cam + time_shift
 constexpr double time_shift = -0.036f;
 // NOTE: 49.02
-constexpr double g_imu_t_step_table[] = {48.9578, 48.84, 49.02, 48.780358, 49.02};
+constexpr double g_imu_t_step_table[] = {48.9578, 48.84, 49.02, 48.780358,
+                                         49.02};
 std::atomic<double> g_imu_t_step_s;
 std::atomic<int> g_imu_cnt;
 
@@ -321,6 +322,13 @@ int main(int argc, char* argv[]) {
       header.stamp = ros::Time::now();
     }
     g_imu_t_mutex.unlock();
+    ros::Time time_now = ros::Time::now();
+    ros::Duration imu_machine_diff =
+        header.stamp - ros::Duration(time_shift) - time_now;
+    PCM_STREAM_DEBUG("image header tp: " << header.stamp
+                                         << " machine current time: "
+                                         << time_now << " imu machine diff: "
+                                         << imu_machine_diff << std::endl;);
 
     std_msgs::Header l_header = header;
     l_header.frame_id = "uav_" + std::to_string(uav_id) + "_cam_0";
@@ -341,13 +349,6 @@ int main(int argc, char* argv[]) {
       r_msg = cv_bridge::CvImage(r_header, "bgr8", rightImage).toImageMsg();
     }
     r_image_pub.publish(r_msg);
-
-    ros::Time time_now = ros::Time::now();
-    ros::Duration imu_machine_diff = l_msg->header.stamp - time_now;
-    PCM_STREAM_DEBUG("image header tp: " << l_msg->header.stamp
-                                         << " machine current time: "
-                                         << time_now << " imu machine diff: "
-                                         << imu_machine_diff << std::endl;);
 
     double tp_diff = (l_msg->header.stamp - last_img_time).toSec();
     PCM_PRINT_INFO(
