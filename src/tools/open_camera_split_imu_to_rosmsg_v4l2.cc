@@ -56,7 +56,7 @@ constexpr float pi_div_180 = M_PI / 180.0f;
 constexpr double time_shift = -0.036f;
 // NOTE: 49.02
 constexpr double g_imu_t_step_table[] = {48.95905, 48.840219, 48.779830,
-                                         48.780358, 48.784268};
+                                         48.780358, 48.7803955};
 std::atomic<double> g_imu_t_step_s;
 std::atomic<int> g_imu_cnt;
 
