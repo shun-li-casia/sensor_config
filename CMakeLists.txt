@@ -107,3 +107,6 @@ target_link_libraries(tp_checker ${PROJECT_NAME})
 
 add_executable(open_camera_split_imu_to_rosmsg_v4l2 src/tools/open_camera_split_imu_to_rosmsg_v4l2.cc)
 target_link_libraries(open_camera_split_imu_to_rosmsg_v4l2 ${PROJECT_NAME})
+
+add_executable(open_imu src/tools/open_imu.cc)
+target_link_libraries(open_imu ${PROJECT_NAME})
