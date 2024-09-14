@@ -188,6 +188,8 @@ int main(int argc, char* argv[]) {
   g_imu_writter->SetDelimiter(",");
   g_imu_writter->EraseOpen();
 
+  g_imu_pub = nh.advertise<sensor_msgs::Imu>("imu_raw_0", 10000);
+
   std::string uart1 = "/dev/ttyUSB" + std::to_string(par.get<int>("imu_uart"));
   if (Set_Serial_Parse_Callback(ImuCallback) < 0) {
     PCM_PRINT_ERROR("set imu callback failed!\n");
@@ -209,9 +211,14 @@ int main(int argc, char* argv[]) {
     return -1;
   }
   g_imu_is_ready.store(true);
+  g_imu_cnt.store(0);
   g_time_start = ros::Time::now();
   g_imu_time = g_time_start;
   PCM_PRINT_INFO("start IMU!\n");
+
+  while (ros::ok()) {
+    ros::Duration(0.5).sleep();
+  };
 
   Serial_Device_UnInit();
   PCM_PRINT_INFO("the node is shutdown!\n");
