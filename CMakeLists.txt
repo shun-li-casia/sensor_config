@@ -99,9 +99,6 @@ target_link_libraries(test_extreme_ros_time ${PROJECT_NAME})
 add_executable(record_start_end_odom src/tools/record_start_end_odom.cc)
 target_link_libraries(record_start_end_odom ${PROJECT_NAME})
 
-add_executable(tp_checker src/tools/tp_checker.cc)
-target_link_libraries(tp_checker ${PROJECT_NAME})
-
 add_executable(open_camera_split_imu_to_rosmsg_v4l2 src/tools/open_camera_split_imu_to_rosmsg_v4l2.cc)
 target_link_libraries(open_camera_split_imu_to_rosmsg_v4l2 ${PROJECT_NAME})
 
