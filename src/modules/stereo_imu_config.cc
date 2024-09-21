@@ -116,7 +116,8 @@ void StereoImu::writeCameraCV(const CamInStereo& cam) const {
 }
 
 bool StereoImu::writeVins(const std::string& path, const int uav_id,
-                          const float imu_noise_factor) const {
+                          const float imu_noise_factor,
+                          const float path_s_scale) const {
   // wirte the camera file
   writeCameraCV(cam0_);
   writeCameraCV(cam1_);
@@ -128,16 +129,13 @@ bool StereoImu::writeVins(const std::string& path, const int uav_id,
   // 写入基本的整数和字符串数据
   // fs << "%YAML:1.0";
   fs << "uav_id" << uav_id;
+  fs << "path_s_scale" << path_s_scale;
   fs << "imu" << 1;
   fs << "num_of_cam" << 2;
-  fs << "imu_topic"
-     << "/uav_" + std::to_string(uav_id_) + "/imu_raw_0";
-  fs << "image0_topic"
-     << "/uav_" + std::to_string(uav_id_) + "/cam_0";
-  fs << "image1_topic"
-     << "/uav_" + std::to_string(uav_id_) + "/cam_1";
-  fs << "output_path"
-     << "/home/ubuntu/vins_output";
+  fs << "imu_topic" << "/uav_" + std::to_string(uav_id_) + "/imu_raw_0";
+  fs << "image0_topic" << "/uav_" + std::to_string(uav_id_) + "/cam_0";
+  fs << "image1_topic" << "/uav_" + std::to_string(uav_id_) + "/cam_1";
+  fs << "output_path" << "/home/ubuntu/vins_output";
   fs << "cam0_calib" << cam0_.cam_params_.camera_name() + ".yaml";
   fs << "cam1_calib" << cam1_.cam_params_.camera_name() + ".yaml";
   fs << "image_width" << cam0_.cam_params_.img_w();
@@ -182,8 +180,7 @@ bool StereoImu::writeVins(const std::string& path, const int uav_id,
   fs << "estimate_td" << 0;  // default 1
   fs << "td" << (cam0_.time_shift_ + cam1_.time_shift_) * 0.5f;
   fs << "load_previous_pose_graph" << 0;
-  fs << "pose_graph_save_path"
-     << "/home/ubuntu/output/pose_graph/";
+  fs << "pose_graph_save_path" << "/home/ubuntu/output/pose_graph/";
   fs << "save_image" << 0;
 
   // 关闭文件存储

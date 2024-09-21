@@ -36,7 +36,7 @@ class StereoImu {
                   const std::string& imu_path);
 
   bool writeVins(const std::string& path, const int uav_id,
-                 const float imu_noise_factor) const;
+                 const float imu_noise_factor, const float path_s_scale) const;
 
   // params
   CamInStereo cam0_, cam1_;
