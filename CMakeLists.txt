@@ -63,9 +63,6 @@ target_link_libraries(open_camera_to_rosmsg ${catkin_LIBRARIES} ${OpenCV_LIBS})
 add_executable(split_hconcate_image src/tools/split_hconcate_image.cc)
 target_link_libraries(split_hconcate_image ${catkin_LIBRARIES} ${OpenCV_LIBS})
 
-add_executable(save_rosimg_to_file src/tools/save_rosimg_to_file.cc)
-target_link_libraries(save_rosimg_to_file ${catkin_LIBRARIES} ${OpenCV_LIBS})
-
 add_executable(undistort_img src/tools/undistort_img.cc)
 target_link_libraries(undistort_img ${PROJECT_NAME})
 
