@@ -27,11 +27,13 @@
 #include <sensor_msgs/Image.h>
 #include <thread>
 
+#include <image_transport/image_transport.h>
+
 int g_uav_id = -1;
 int g_pub_rate = 25;
 
 // image
-ros::Publisher g_l_rect_img_pub, g_r_rect_img_pub;
+image_transport::Publisher g_l_rect_img_pub, g_r_rect_img_pub;
 
 // camera info
 ros::Publisher g_l_rect_info_pub, g_r_rect_info_pub;
@@ -43,7 +45,7 @@ std::pair<cv::Mat, cv::Mat> g_l_maps, g_r_maps;
 void remap(const sensor_msgs::ImageConstPtr& img_msg,
            sensor_msgs::CameraInfo* cam_msg,
            const std::pair<cv::Mat, cv::Mat>& maps, const std::string frame_id,
-           ros::Publisher* img_pub, ros::Publisher* cam_pub) {
+           image_transport::Publisher* img_pub, ros::Publisher* cam_pub) {
   try {
     // Convert the ROS Image message to OpenCV's Mat format
     cv_bridge::CvImagePtr cv_ptr;
@@ -119,8 +121,9 @@ int main(int argc, char** argv) {
                                     boost::placeholders::_2));
 
   // pub the left and right camrea and rected image and info
-  g_l_rect_img_pub = nh.advertise<sensor_msgs::Image>("rect/cam_0", 100);
-  g_r_rect_img_pub = nh.advertise<sensor_msgs::Image>("rect/cam_1", 100);
+  image_transport::ImageTransport it(nh);
+  g_l_rect_img_pub = it.advertise("rect/cam_0", 100);
+  g_r_rect_img_pub = it.advertise("rect/cam_1", 100);
 
   g_l_rect_info_pub =
       nh.advertise<sensor_msgs::CameraInfo>("rect/cam_0_info", 100);

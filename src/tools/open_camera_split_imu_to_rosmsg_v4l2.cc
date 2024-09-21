@@ -32,6 +32,7 @@
 #include <cv_bridge/cv_bridge.h>
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/Imu.h>
+#include <image_transport/image_transport.h>
 #include <opencv2/opencv.hpp>
 #include <mutex>
 #include <atomic>
@@ -226,8 +227,9 @@ int main(int argc, char* argv[]) {
   }
 
   int camera_id = par.get<int>("camera_id");
-  ros::Publisher l_image_pub = nh.advertise<sensor_msgs::Image>("cam_0", 1);
-  ros::Publisher r_image_pub = nh.advertise<sensor_msgs::Image>("cam_1", 1);
+  image_transport::ImageTransport it(nh);
+  image_transport::Publisher l_image_pub = it.advertise("cam_0", 1);
+  image_transport::Publisher r_image_pub = it.advertise("cam_1", 1);
   g_imu_pub = nh.advertise<sensor_msgs::Imu>("imu_raw_0", 10000);
 
   // init the camera
